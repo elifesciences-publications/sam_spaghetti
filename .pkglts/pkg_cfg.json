@@ -1,0 +1,48 @@
+{
+  "_pkglts": {
+    "auto_install": true, 
+    "install_front_end": "stdout", 
+    "use_prompts": false, 
+    "version": 3
+  }, 
+  "base": {
+    "authors": [
+      [
+        "Guillaume Cerutti", 
+        "guillaume.cerutti@inria.fr"
+      ]
+    ], 
+    "namespace": null, 
+    "pkgname": "sam_spaghetti", 
+    "url": null
+  }, 
+  "conda": {}, 
+  "coverage": {}, 
+  "doc": {
+    "description": "SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation", 
+    "keywords": []
+  }, 
+  "github": {
+    "owner": "{{ base.authors[0][0] }}", 
+    "project": "{{ base.pkgname }}", 
+    "url": "https://github.com/{{ github.owner }}/{{ github.project }}"
+  }, 
+  "license": {
+    "name": "cecill-c", 
+    "organization": "Inria", 
+    "project": "{{ base.pkgname }}", 
+    "year": 2018
+  }, 
+  "pysetup": {
+    "intended_versions": [
+      "27"
+    ], 
+    "require": []
+  }, 
+  "test": {}, 
+  "version": {
+    "major": 0, 
+    "minor": 1, 
+    "post": 0
+  }
+}
