@@ -130,13 +130,13 @@ def main():
                     signal_data = sequence_signal_data[exp][sequence_name]
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
                     figure = signal_nuclei_plot(signal_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
-                    figure.savefig(image_dirname+"/"+sequence_name+"_L1_nuclei_signals.png")                   
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")                   
 
                 if 'sequence_raw' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)
                     signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure = signal_image_plot(signal_images, signal_data, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure.savefig(image_dirname+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
@@ -146,7 +146,25 @@ def main():
 
         logging.info("--> Compiling signal data from all experiments "+str(experiments))
         compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
-        
+                            
+        for exp in experiments:
+            for sequence_name in sequence_signal_data[exp]:
+                if args.growth_estimation:
+                    logging.info("--> Computing sequence surfacic growth "+sequence_name)
+                    compute_surfacic_growth(sequence_name, image_dirname, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+
+                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                    logging.info("--> Plotting nuclei growth "+sequence_name)
+                    figure = signal_nuclei_plot(signal_normalized_data, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
+
+                if False:
+                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                    logging.info("--> Plotting maps "+sequence_name)
+                    figure = signal_map_plot(signal_normalized_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_signal_maps.png")  
+
+
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
                 if args.primordia_alignment:
@@ -158,22 +176,11 @@ def main():
                     logging.info("--> Compiling signal data from all experiments "+str(experiments))
                     compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
 
-        for exp in experiments:
-            for sequence_name in sequence_signal_data[exp]:
-                if args.growth_estimation:
-                    logging.info("--> Computing sequence surfacic growth "+sequence_name)
-                    compute_surfacic_growth(sequence_name, image_dirname, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-
-                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
-                    logging.info("--> Plotting nuclei growth "+sequence_name)
-                    figure = signal_nuclei_plot(signal_normalized_data, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
-                    figure.savefig(image_dirname+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
-
-                if False:
-                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                if True:
+                    signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
-                    figure = signal_map_plot(signal_normalized_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
-                    figure.savefig(image_dirname+"/"+sequence_name+"_L1_signal_maps.png")  
+                    figure = signal_map_plot(signal_aligned_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
 
 
 
