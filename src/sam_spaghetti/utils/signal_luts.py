@@ -16,16 +16,16 @@ def load_colormaps(colormaps_dir=sam_spaghetti.__path__[0]+"/../../share/data/co
     return colormaps
 
 
-primordia_colors = {}
-primordia_colors[-3] = "#333333"
-primordia_colors[-2] = "#0ce838"
-primordia_colors[-1] = "#0065ff"
-primordia_colors[0] = "#64bca4"
-primordia_colors[1] = "#e30d00"
-primordia_colors[2] = "#ffa200"
-primordia_colors[3] = "#cccccc"
-primordia_colors[4] = "#dddddd"
-primordia_colors[5] = "#eeeeee"
+# primordia_colors = {}
+# primordia_colors[-3] = "#333333"
+# primordia_colors[-2] = "#0ce838"
+# primordia_colors[-1] = "#0065ff"
+# primordia_colors[0] = "#64bca4"
+# primordia_colors[1] = "#e30d00"
+# primordia_colors[2] = "#ffa200"
+# primordia_colors[3] = "#cccccc"
+# primordia_colors[4] = "#dddddd"
+# primordia_colors[5] = "#eeeeee"
 
 primordia_colors = {}
 primordia_colors[-3] = "#8b008b"
@@ -82,9 +82,26 @@ for cmap_name in colormaps:
         color_dict[c] = tuple(color_dict[c])
     cm.register_cmap(cmap_name+"_r",mpl.colors.LinearSegmentedColormap(cmap.name+"_r", color_dict))
 
+quantified_signals = []
+quantified_signals += ['DIIV']
+quantified_signals += ['qDII']
+quantified_signals += ['Auxin']
+quantified_signals += ['TagBFP']
+quantified_signals += ['tdT']
+quantified_signals += ['CLV3']
+quantified_signals += ['DR5']
+quantified_signals += ['AHP6']
+quantified_signals += ['PIN1']
+quantified_signals += ['PI']
+quantified_signals += ['Normalized_'+signal for signal in quantified_signals]
+quantified_signals += ['gaussian_curvature']
+quantified_signals += ['mean_curvature']
+quantified_signals += ['next_relative_surfacic_growth']
+quantified_signals += ['previous_relative_surfacic_growth']
+
 signal_ranges= {}
 # signal_ranges['DIIV'] = (1000,10000)
-signal_ranges['DIIV'] = (500,20000)
+signal_ranges['DIIV'] = (0,25000)
 signal_ranges['Normalized_DIIV'] = (0,1)
 signal_ranges['qDII'] = (0,1.0)
 signal_ranges['Normalized_qDII'] = (0,1.5)
@@ -98,12 +115,14 @@ signal_ranges['tdT'] = (0,20000)
 # signal_ranges['PIN1'] = (1000,60000)
 signal_ranges['PIN1'] = (30000,60000)
 signal_ranges['PI'] = (10000,40000)
-signal_ranges['gaussian_curvature'] = (-0.0005,0.0005)
+signal_ranges['gaussian_curvature'] = (-0.001,0.001)
+signal_ranges['mean_curvature'] = (-0.05,0.05)
 signal_ranges['aligned_z'] = (-50,10)
 signal_ranges['nuclei_distance'] = (0,15)
 signal_ranges['surface_distance'] = (0,100)
 signal_ranges['sam_id'] = (0,30)
 signal_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
+signal_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
 
 
 channel_ranges= {}
@@ -118,7 +137,7 @@ channel_ranges['PI'] = (1000,30000)
 signal_lut_ranges= {}
 signal_lut_ranges['CLV3'] = (0,20000)
 # signal_lut_ranges['DIIV'] = (500,6000)
-signal_lut_ranges['DIIV'] = (500,20000)
+signal_lut_ranges['DIIV'] = (0,15000)
 signal_lut_ranges['Normalized_DIIV'] = (0,1)
 signal_lut_ranges['qDII'] = (0,0.3)
 signal_lut_ranges['Normalized_qDII'] = (-0.5,1)
@@ -132,11 +151,13 @@ signal_lut_ranges['tdT'] = (0,20000)
 signal_lut_ranges['PIN1'] = (0,10000)
 signal_lut_ranges['PI'] = (0,20000)
 signal_lut_ranges['gaussian_curvature'] = (-0.0005,0.0005)
+signal_lut_ranges['mean_curvature'] = (-0.05,0.05)
 signal_lut_ranges['aligned_z'] = (-30,0)
 signal_lut_ranges['nuclei_distance'] = (0,15)
 signal_lut_ranges['surface_distance'] = (0,100)
 signal_lut_ranges['sam_id'] = (0,30)
 signal_lut_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
+signal_lut_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
 
 
 signal_colormaps = {}
@@ -149,7 +170,8 @@ signal_colormaps['DIIV'] = 'lemon_hot'
 signal_colormaps['Normalized_DIIV'] = 'viridis_r'
 signal_colormaps['Normalized_Auxin'] = 'viridis'
 signal_colormaps['qDII'] = '1Flashy_green'
-signal_colormaps['Normalized_qDII'] = 'winter'
+# signal_colormaps['Normalized_qDII'] = 'winter'
+signal_colormaps['Normalized_qDII'] = '1Flashy_green'
 # signal_colormaps['Auxin'] = '1Flashy_green_r'
 signal_colormaps['Auxin'] = 'lemon_hot_r'
 # signal_colormaps['DR5'] = '1Flashy_orange'
@@ -162,11 +184,13 @@ signal_colormaps['PIN1'] = '1Flashy_turquoise'
 signal_colormaps['PI'] = '1Flashy_red'
 # signal_colormaps['gaussian_curvature'] = 'RdBu_r'
 signal_colormaps['gaussian_curvature'] = 'curvature'
+signal_colormaps['mean_curvature'] = 'curvature'
 signal_colormaps['aligned_z'] = 'magma'
 signal_colormaps['nuclei_distance'] = 'geo_jet'
 signal_colormaps['surface_distance'] = 'geo_jet'
 signal_colormaps['sam_id'] = 'Blues'
 signal_colormaps['next_relative_surfacic_growth'] = 'jet'
+signal_colormaps['previous_relative_surfacic_growth'] = 'jet'
 
 
 
