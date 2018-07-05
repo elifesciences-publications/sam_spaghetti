@@ -9,7 +9,7 @@ from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plo
 from sam_spaghetti.sequence_image_registration import sequence_rigid_vectorfield_registration
 from sam_spaghetti.signal_data_compilation import compile_signal_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
-from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence
+from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
 import logging
 import argparse
@@ -170,8 +170,9 @@ def main():
                 if args.primordia_alignment:
                     logging.info("--> Sequence primordia alignment "+sequence_name)
                     sam_orientation = get_sequence_orientation(sequence_name,data_dirname)
-                    align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-
+                    # align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    detect_organ_primordia(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    
                 if True:
                     logging.info("--> Compiling signal data from all experiments "+str(experiments))
                     compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)

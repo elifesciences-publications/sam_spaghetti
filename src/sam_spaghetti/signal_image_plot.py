@@ -23,6 +23,8 @@ from vplants.image.spatial_image import SpatialImage
 # from timagetk.components import SpatialImage as TissueImage
 # from timagetk.algorithms.trsf import BalTransformation, allocate_c_bal_matrix, apply_trsf, create_trsf
 
+from sam_spaghetti.signal_map import SignalMap, plot_signal_map
+
 import sam_spaghetti.utils.signal_luts
 reload(sam_spaghetti.utils.signal_luts)
 from sam_spaghetti.utils.signal_luts import *
@@ -451,17 +453,23 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
             logging.info("".join(["  " for l in xrange(loglevel)])+"--> Plotting signal maps for "+filename)
 
             if aligned:
-                X = file_data['aligned_x'].values
-                Y = file_data['aligned_y'].values
-                Z = file_data['aligned_z'].values
+                # X = file_data['aligned_x'].values
+                # Y = file_data['aligned_y'].values
+                # Z = file_data['aligned_z'].values
+                position_name = 'aligned'
+                center = np.array([0,0])
             elif registered:
-                X = microscope_orientation*file_data['registered_x'].values
-                Y = microscope_orientation*file_data['registered_y'].values
-                Z = microscope_orientation*file_data['registered_z'].values
+                # X = microscope_orientation*file_data['registered_x'].values
+                # Y = microscope_orientation*file_data['registered_y'].values
+                # Z = microscope_orientation*file_data['registered_z'].values
+                position_name = 'registered'
+                center = np.array([-r_max,-r_max])
             else:
-                X = microscope_orientation*file_data['center_x'].values
-                Y = microscope_orientation*file_data['center_y'].values
-                Z = microscope_orientation*file_data['center_z'].values
+                # X = microscope_orientation*file_data['center_x'].values
+                # Y = microscope_orientation*file_data['center_y'].values
+                # Z = microscope_orientation*file_data['center_z'].values
+                position_name = 'center'
+                center = np.array([-r_max,-r_max])
 
             # reference_img = signal_images[reference_name][filename]
             # size = np.array(reference_img.shape)
@@ -470,45 +478,46 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
             # if resolution is None:
             #     resolution = np.abs(voxelsize)[0]
 
-            if aligned:
-                xx,yy = np.meshgrid(np.linspace(-r_max,r_max,2*r_max+1),np.linspace(-r_max,r_max,2*r_max+1))
-            else:
-                xx,yy = np.meshgrid(np.linspace(0,2*r_max,2*r_max+1),np.linspace(0,2*r_max,2*r_max+1))
+            # if aligned:
+            #     xx,yy = np.meshgrid(np.linspace(-r_max,r_max,2*r_max+1),np.linspace(-r_max,r_max,2*r_max+1))
+            # else:
+            #     xx,yy = np.meshgrid(np.linspace(0,2*r_max,2*r_max+1),np.linspace(0,2*r_max,2*r_max+1))
 
 
             # xx,yy = np.meshgrid(np.linspace(0,((size-1)*voxelsize)[0],((size-1)*np.abs(voxelsize))[0]/resolution+1),np.linspace(0,((size-1)*voxelsize)[1],((size-1)*np.abs(voxelsize))[0]/resolution+1))
             # extent = xx.max(),xx.min(),yy.min(),yy.max()
-
-                    
-            nuclei_positions = dict(zip(range(len(X)),np.transpose([X,Y,np.zeros_like(X)])))
+            signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=False, radius=cell_radius, density_k=density_k)
             
-            nuclei_density = nuclei_density_function(nuclei_positions,cell_radius=cell_radius,k=density_k)(xx,yy,np.zeros_like(xx))
-            confidence_map = nuclei_density  + np.maximum(1-np.linalg.norm([xx,yy],axis=0)/60.,0)
-            confidence_map = nd.gaussian_filter(confidence_map,sigma=1.0)
+            # nuclei_positions = dict(zip(range(len(X)),np.transpose([X,Y,np.zeros_like(X)])))
+            
+            # nuclei_density = nuclei_density_function(nuclei_positions,cell_radius=cell_radius,k=density_k)(xx,yy,np.zeros_like(xx))
+            # confidence_map = nuclei_density  + np.maximum(1-np.linalg.norm([xx,yy],axis=0)/60.,0)
+            # confidence_map = nd.gaussian_filter(confidence_map,sigma=1.0)
     
-            # signal_field = "Auxin"
+            # # signal_field = "Auxin"
             
-            signal_maps = {}
-            for i_signal, signal_name in enumerate(signal_names):
-                signal_maps[signal_name] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([xx,yy],(1,2,0)),file_data[signal_name].values,cell_radius=cell_radius,density_k=density_k)
+            # signal_maps = {}
+            # for i_signal, signal_name in enumerate(signal_names):
+            #     signal_maps[signal_name] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([xx,yy],(1,2,0)),file_data[signal_name].values,cell_radius=cell_radius,density_k=density_k)
             
 
             for i_signal, signal_name in enumerate(signal_names):
 
                 figure.add_subplot(len(signal_names),len(filenames),i_signal*len(filenames)+i_time+1)
 
+                plot_signal_map(signal_map, signal_name, figure, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
                 # logging.info("".join(["  " for l in xrange(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
                 # figure.gca().scatter(X,Y,c=file_data[signal_name].values,s=320,linewidth=0,cmap=signal_colormaps[signal_name],vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
 
-                figure.gca().contourf(xx,yy,signal_maps[signal_name],np.linspace(signal_ranges[signal_name][0],signal_ranges[signal_name][1],101),cmap=signal_colormaps[signal_name],alpha=1,antialiased=True,vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
-                figure.gca().contour(xx,yy,signal_maps[signal_name],np.linspace(signal_ranges[signal_name][0],signal_ranges[signal_name][1],101),cmap='gray',alpha=0.1,linewidths=1,antialiased=True,vmin=-1,vmax=0)
+                # figure.gca().contourf(xx,yy,signal_maps[signal_name],np.linspace(signal_ranges[signal_name][0],signal_ranges[signal_name][1],101),cmap=signal_colormaps[signal_name],alpha=1,antialiased=True,vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
+                # figure.gca().contour(xx,yy,signal_maps[signal_name],np.linspace(signal_ranges[signal_name][0],signal_ranges[signal_name][1],101),cmap='gray',alpha=0.1,linewidths=1,antialiased=True,vmin=-1,vmax=0)
 
-                for a in xrange(16):
-                    figure.gca().contourf(xx,yy,confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
+                # for a in xrange(16):
+                #     figure.gca().contourf(xx,yy,confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
 
-                if aligned:
-                    CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
-                    figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
+                # if aligned:
+                #     CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
+                #     figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
 
                 # figure.gca().set_xlim(xx.min(),xx.max())
                 # figure.gca().set_ylim(yy.min(),yy.max())
@@ -519,7 +528,7 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
                 if i_time == 0:
                     figure.gca().set_ylabel(signal_name,size=28)
 
-                figure.gca().axis('equal')
+                # figure.gca().axis('equal')
 
                 # figure.add_subplot(len(signal_names)+2,len(filenames),(len(signal_names)+1)*len(filenames)+i_time+1)
 
@@ -527,8 +536,8 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
                 # # CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
                 # # figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
 
-                figure.gca().set_xlim(xx.min(),xx.max())
-                figure.gca().set_ylim(yy.min(),yy.max())
+                # figure.gca().set_xlim(xx.min(),xx.max())
+                # figure.gca().set_ylim(yy.min(),yy.max())
 
                 # figure.gca().axis('off')
 
