@@ -7,7 +7,7 @@ from vplants.cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
 
 from sam_spaghetti.sam_sequence_info import get_experiment_name
-from sam_spaghetti.signal_image_plot import load_sequence_signal_data
+from sam_spaghetti.sam_sequence_loading import load_sequence_signal_data
 
 import os
 import logging
@@ -88,12 +88,16 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                     data_list += [data]
 
 
-    complete_data = pd.concat(data_list)
-    
-    if save_files:
-        if not aligned:
-            complete_data.to_csv(data_dirname+"/normalized_signal_data.csv",index=False) 
-        else:
-            complete_data.to_csv(data_dirname+"/aligned_L1_normalized_signal_data.csv",index=False) 
+    if len(data_list)>0:
+        complete_data = pd.concat(data_list)
+        
+        if save_files:
+            if not aligned:
+                complete_data.to_csv(data_dirname+"/normalized_signal_data.csv",index=False) 
+            else:
+                complete_data.to_csv(data_dirname+"/aligned_L1_normalized_signal_data.csv",index=False) 
+    else:
+        complete_data = pd.DataFrame()
+        logging.warning("No data to compile! Nothing will be saved!")
 
     return complete_data

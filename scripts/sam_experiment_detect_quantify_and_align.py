@@ -4,9 +4,9 @@ import pandas as pd
 import sam_spaghetti
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_from_czi
-from sam_spaghetti.signal_image_plot import load_sequence_signal_images, load_sequence_signal_data
+from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot
-from sam_spaghetti.sequence_image_registration import sequence_rigid_vectorfield_registration
+from sam_spaghetti.sequence_image_registration import register_sequence_images
 from sam_spaghetti.signal_data_compilation import compile_signal_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
@@ -62,10 +62,11 @@ def main():
 
     # mesh_to_cvt_image(input=args.input, output=args.output, method=args.method, verbose=args.verbose, debug=args.debug,
     #     save=not(args.no_save), voxelsize=args.voxelsize, nbcells=args.nbcells, max_step=args.step, res=args.resolution)
-    data_dirname =args.data_directory
+    data_dirname = args.data_directory
 
     microscopy_dirname = args.microscopy_directory if args.microscopy_directory is not None else data_dirname+"/microscopy"
     if not os.path.exists(microscopy_dirname):
+        logging.warning(microscopy_dirname+" does not exist!")
         logging.warning("Microscopy directory not found! No detection will be performed.")
 
     experiments = args.experiments
@@ -126,15 +127,16 @@ def main():
 
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
-                if False:
+                if True:
                     signal_data = sequence_signal_data[exp][sequence_name]
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
                     figure = signal_nuclei_plot(signal_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
-                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")                   
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")
 
                 if 'sequence_raw' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)
                     signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_data = sequence_signal_data[exp][sequence_name]
                     figure = signal_image_plot(signal_images, signal_data, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 
@@ -142,7 +144,7 @@ def main():
             for sequence_name in sequence_signal_data[exp]:
                 if args.registration:
                     logging.info("--> Sequence image registration "+sequence_name)
-                    sequence_rigid_vectorfield_registration(sequence_name, save_files=True, image_dirname=image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
 
         logging.info("--> Compiling signal data from all experiments "+str(experiments))
         compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
@@ -158,7 +160,7 @@ def main():
                     figure = signal_nuclei_plot(signal_normalized_data, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
 
-                if False:
+                if True:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_normalized_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
@@ -170,12 +172,8 @@ def main():
                 if args.primordia_alignment:
                     logging.info("--> Sequence primordia alignment "+sequence_name)
                     sam_orientation = get_sequence_orientation(sequence_name,data_dirname)
-                    # align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     detect_organ_primordia(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    
-                if True:
-                    logging.info("--> Compiling signal data from all experiments "+str(experiments))
-                    compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
 
                 if True:
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
@@ -183,6 +181,9 @@ def main():
                     figure = signal_map_plot(signal_aligned_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
 
+        if True:
+            logging.info("--> Compiling signal data from all experiments "+str(experiments))
+            compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
 
 
 

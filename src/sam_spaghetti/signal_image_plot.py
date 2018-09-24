@@ -14,101 +14,25 @@ from matplotlib.colors import Normalize
 # from vplants.container import array_dict
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
+from vplants.tissue_nukem_3d.signal_map import SignalMap, plot_signal_map
 # from vplants.tissue_nukem_3d.nuclei_detection import compute_fluorescence_ratios
 
-from vplants.image.serial.all import imread, imsave
-from vplants.image.spatial_image import SpatialImage
 # from vplants.image.registration.registration import pts2transfo
 
 # from timagetk.components import SpatialImage as TissueImage
 # from timagetk.algorithms.trsf import BalTransformation, allocate_c_bal_matrix, apply_trsf, create_trsf
 
-from sam_spaghetti.signal_map import SignalMap, plot_signal_map
-
 import sam_spaghetti.utils.signal_luts
 reload(sam_spaghetti.utils.signal_luts)
 from sam_spaghetti.utils.signal_luts import *
+
 
 from time import time as current_time
 from copy import deepcopy
 
 import logging
 
-max_time = 99
 
-def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None, verbose=False, debug=False, loglevel=0):
-
-    logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
-
-    signal_images = {}
-
-    sequence_filenames = []
-    for time in xrange(max_time):
-        filename = sequence_name+"_t"+str(time).zfill(2)
-        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
-            sequence_filenames += [filename]
-
-    if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
-
-        for filename in sequence_filenames:
-            data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
-            file_df = pd.read_csv(data_filename)
-
-            if signal_names is None:
-                file_signals = [c for c in file_df.columns if (not "center" in c) and (not "layer" in c) and (not 'curvature' in c) and (not 'Unnamed' in c) and (not 'label' in c)]
-            else:
-                file_signals = [c for c in signal_names if c in file_df.columns]
-
-            for signal_name in file_signals:
-
-                start_time = current_time()
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+signal_name)
-                signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+".inr.gz"
-                if os.path.exists(signal_image_file):
-                    img = imread(signal_image_file)
-                    if not signal_name in signal_images:
-                        signal_images[signal_name] = {}
-                    signal_images[signal_name][filename] = img
-                else:
-                    signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+".inr"
-                    if os.path.exists(signal_image_file):
-                        signal_images[signal_name][filename] = imread(signal_image_file)
-                    else:
-                        logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Loading : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
-
-    return signal_images
-
-
-def load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=False, debug=False, loglevel=0):
-
-    logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
-
-    signal_data = {}
-
-    sequence_filenames = []
-    for time in xrange(max_time):
-        filename = sequence_name+"_t"+str(time).zfill(2)
-        # data_filename = "".join([image_dirname+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
-        data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
-        if os.path.exists(data_filename):
-            sequence_filenames += [filename]
-
-    if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
-        for filename in sequence_filenames:
-            data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
-            df = pd.read_csv(data_filename)
-            # if ('DIIV' in df.columns)&('TagBFP' in df.columns):
-            #     df['qDII'] = deepcopy(df['DIIV'].values)
-            #     df['DIIV'] = deepcopy(df['DIIV'].values*df['TagBFP'].values)
-            signal_data[filename] = df
-
-    return signal_data
-
-
-                    
 
 def signal_image_plot(signal_images, signal_data, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
     
@@ -434,6 +358,10 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
     if filenames is None:
         filenames = np.sort(signal_data.keys())
 
+    figure = plt.figure(0)
+    figure.clf()
+    figure.patch.set_facecolor('w')
+
     if len(filenames)>0:
         
         file_times = np.array([int(f[-2:]) for f in filenames])
@@ -443,9 +371,6 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
             signal_names = [c for c in signal_data[filenames[0]].columns if c in quantified_signals and (not 'Normalized' in c)]
             signal_names.remove(reference_name)
 
-        figure = plt.figure(0)
-        figure.clf()
-        figure.patch.set_facecolor('w')
 
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
             file_data = signal_data[filename]
@@ -505,7 +430,7 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
 
                 figure.add_subplot(len(signal_names),len(filenames),i_signal*len(filenames)+i_time+1)
 
-                plot_signal_map(signal_map, signal_name, figure, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
+                plot_signal_map(signal_map, signal_name, figure, distance_rings=aligned, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
                 # logging.info("".join(["  " for l in xrange(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
                 # figure.gca().scatter(X,Y,c=file_data[signal_name].values,s=320,linewidth=0,cmap=signal_colormaps[signal_name],vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
 
@@ -519,8 +444,9 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
                 #     CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
                 #     figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
 
-                # figure.gca().set_xlim(xx.min(),xx.max())
-                # figure.gca().set_ylim(yy.min(),yy.max())
+                if not aligned:
+                    figure.gca().set_xlim(-2*r_max,0)
+                    figure.gca().set_ylim(-2*r_max,0)
 
                 if i_signal == 0:
                     figure.gca().set_title("t="+str(time)+"h",size=28)
@@ -549,7 +475,7 @@ def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=F
         figure.tight_layout()
         figure.subplots_adjust(wspace=0,hspace=0)
 
-        return figure
+    return figure
 
 
 

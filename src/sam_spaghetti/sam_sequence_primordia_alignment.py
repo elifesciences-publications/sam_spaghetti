@@ -8,11 +8,10 @@ import matplotlib.patheffects as path_effects
 import matplotlib as mpl
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
+from vplants.tissue_nukem_3d.signal_map import SignalMap, plot_signal_map
+from vplants.tissue_nukem_3d.signal_map_analysis import compute_signal_map_landscape, signal_map_landscape_analysis, signal_map_regions
 
-from sam_spaghetti.signal_image_plot import load_sequence_signal_data
-from sam_spaghetti.sequence_growth_estimation import load_sequence_rigid_transformations
-from sam_spaghetti.signal_map import SignalMap, plot_signal_map
-from sam_spaghetti.signal_map_analysis import compute_signal_map_landscape, signal_map_landscape_analysis
+from sam_spaghetti.sam_sequence_loading import load_sequence_signal_data, load_sequence_rigid_transformations
 from sam_spaghetti.utils.signal_luts import signal_colormaps, signal_ranges, signal_lut_ranges, primordia_colors
 
 from vplants.container import array_dict
@@ -34,23 +33,33 @@ def extract_clv3_circle(signal_data, position_name='center', clv3_threshold_rang
 
     signal_map = SignalMap(signal_data, extent=200, position_name=position_name, resolution=2, polar=False, radius=cell_radius, density_k=density_k)
 
-    clv3_map = signal_map.signal_map("Normalized_CLV3")
+
+    # clv3_map = signal_map.signal_map("Normalized_CLV3")
 
     centers = []
     radii = []
     for clv3_threshold in clv3_threshold_range:
-        clv3_regions = nd.label((clv3_map>clv3_threshold).astype(int))[0]
-        components = np.unique(clv3_regions)[1:]
-        component_centers = np.transpose([nd.sum(xx,clv3_regions,index=components),nd.sum(yy,clv3_regions,index=components)])/nd.sum(np.ones_like(xx),clv3_regions,index=components)[:,np.newaxis]
-        component_areas = np.array([(clv3_regions==c).sum() * np.prod(resolution) for c in components])
 
-        if len(component_centers)>0:
-            clv3_center = component_centers[np.argmax(component_areas)]
-            clv3_area = np.max(component_areas)
-            clv3_radius = np.sqrt(clv3_area/np.pi)
-
+        clv3_regions = signal_map_regions(signal_map,'Normalized_CLV3',threshold=clv3_threshold)
+        if len(clv3_regions)>0:
+            clv3_region = clv3_regions.iloc[np.argmax(clv3_regions['area'])]
+            clv3_radius = np.sqrt(clv3_region['area']/np.pi)
+            clv3_center = p[['center_x','center_y']].values
             centers += [clv3_center]
             radii += [clv3_radius]
+        
+        # clv3_regions = nd.label((clv3_map>clv3_threshold).astype(int))[0]
+        # components = np.unique(clv3_regions)[1:]
+        # component_centers = np.transpose([nd.sum(xx,clv3_regions,index=components),nd.sum(yy,clv3_regions,index=components)])/nd.sum(np.ones_like(xx),clv3_regions,index=components)[:,np.newaxis]
+        # component_areas = np.array([(clv3_regions==c).sum() * np.prod(resolution) for c in components])
+
+        # if len(component_centers)>0:
+        #     clv3_center = component_centers[np.argmax(component_areas)]
+        #     clv3_area = np.max(component_areas)
+        #     clv3_radius = np.sqrt(clv3_area/np.pi)
+
+        #     centers += [clv3_center]
+        #     radii += [clv3_radius]
 
     clv3_center = np.mean(centers,axis=0)
     clv3_radius = np.mean(radii)

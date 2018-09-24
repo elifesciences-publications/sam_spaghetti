@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import os
 
@@ -9,14 +10,13 @@ def get_experiment_name(exp, dirname=sam_spaghetti_dirname):
     experiment_file = dirname+"/experiment_info.csv"
     experiment_data = pd.read_csv(experiment_file,sep=';')
     experiment_sequences = dict(zip(experiment_data['experiment'],experiment_data['experiment_name']))
-    # experiment_sequences["E35"] = "qDII-PIN1-CLV3-PI-LD_E35_171110"
     return experiment_sequences.get(exp,"")
 
 def get_experiment_microscopy(exp, dirname=sam_spaghetti_dirname):
     experiment_file = dirname+"/experiment_info.csv"
     experiment_data = pd.read_csv(experiment_file,sep=';')
+    experiment_data = experiment_data.replace(np.nan,"")
     experiment_microscopy = dict(zip(experiment_data['experiment'],experiment_data['microscopy_directory']))
-    # experiment_microscopy["E35"] = "20171110 MS-E35 LD qDII-CLV3-PIN1-PI"
     return experiment_microscopy.get(exp,"")
 
 def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
