@@ -44,7 +44,7 @@ def extract_clv3_circle(signal_data, position_name='center', clv3_threshold_rang
         if len(clv3_regions)>0:
             clv3_region = clv3_regions.iloc[np.argmax(clv3_regions['area'])]
             clv3_radius = np.sqrt(clv3_region['area']/np.pi)
-            clv3_center = p[['center_x','center_y']].values
+            clv3_center = clv3_region[['center_x','center_y']].values
             centers += [clv3_center]
             radii += [clv3_radius]
         
@@ -209,6 +209,21 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     for i_file, filename in enumerate(filenames):
         sequence_data[filename] = sequence_data[filename][sequence_data[filename]['layer']==1]
 
+        file_data = sequence_data[filename]
+
+        X = file_data['center_x'].values
+        Y = file_data['center_y'].values
+        Z = file_data['center_z'].values
+        
+        if i_file == 0:
+            file_data['registered_x'] = X
+            file_data['registered_y'] = Y
+            file_data['registered_z'] = Z
+            
+            file_data['sequence_registered_x'] = X
+            file_data['sequence_registered_y'] = Y
+            file_data['sequence_registered_z'] = Z
+
     previous_transform = np.diag(np.ones(4))
         
     for i_file,(reference_filename,floating_filename) in enumerate(zip(filenames[:-1],filenames[1:])):
@@ -224,15 +239,6 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
         X = reference_data['center_x'].values
         Y = reference_data['center_y'].values
         Z = reference_data['center_z'].values
-        
-        if i_file == 0:
-            reference_data['registered_x'] = X
-            reference_data['registered_y'] = Y
-            reference_data['registered_z'] = Z
-            
-            reference_data['sequence_registered_x'] = X
-            reference_data['sequence_registered_y'] = Y
-            reference_data['sequence_registered_z'] = Z
             
         reference_points = np.transpose([X,Y,Z])
 

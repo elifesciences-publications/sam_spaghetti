@@ -4,10 +4,11 @@ import pandas as pd
 import sam_spaghetti
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_from_czi
-from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data
+from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
+from sam_spaghetti.signal_image_slices import sequence_signal_image_slices
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot
 from sam_spaghetti.sequence_image_registration import register_sequence_images
-from sam_spaghetti.signal_data_compilation import compile_signal_data
+from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
@@ -41,17 +42,14 @@ def main():
     parser.add_argument('-D', '--detection', default=False, action='store_true', help='Run nuclei detection on all experiments')
     parser.add_argument('-s', '--save-channels', default=False, action='store_true', help='Save INR image files for each microscopy image channel')
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
-    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_registered\']',choices=['sequence_raw', 'sequence_registered'])
+    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
     parser.add_argument('-p', '--projection-type', default='max_intensity', help='Projection type for the image plots [\'max_intensity\', \'L1_slice\']',choices=['max_intensity', 'L1_slice'])
+    parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
+    parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
     parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
-    # parser.add_argument('-o', '--output', help='Path to output files directory', default="./output")
-    # parser.add_argument('-n', '--nbcells', help='Number of cells', default=100, type=int)
-    # parser.add_argument('--step', help='Maximal number of steps for CVT', default=1e9, type=int)
-    # parser.add_argument('-ns', '--no_save', default=False, action='store_true', help='skip saving output image')
-    # parser.add_argument('--voxelsize', help='Voxel size', default=[.025, .025, .025], nargs=3, type=float)
-    # parser.add_argument('-m', '--method', help='Method for CVT [\'lloyd\', \'mcqueen\']', default='lloyd')
-    # parser.add_argument('-r', '--resolution', help='Resolution (in voxels)', default=-1, type=int)
+    parser.add_argument('-C', '--data-compilation', default=False, action='store_true', help='Compile all the data from the experiments into .csv files in the data directory')
+    
     parser.add_argument('-v', '--verbose', default=False, action='store_true', help='Verbose')
     parser.add_argument('-d', '--debug', default=False, action='store_true', help='Debug')
 
@@ -79,7 +77,7 @@ def main():
             experiments.remove(exp)
         else:
 
-            if microscopy_dirname is not None:
+            if args.detection and (microscopy_dirname is not None):
                 experiment_dirname = microscopy_dirname+"/"+get_experiment_microscopy(exp,data_dirname)
                 if os.path.exists(experiment_dirname+"/RAW"):
                     experiment_dirname += "/RAW"
@@ -127,17 +125,20 @@ def main():
 
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
-                if True:
-                    signal_data = sequence_signal_data[exp][sequence_name]
+                if 'sequence_raw' in args.nuclei_plot:
+                    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
                     figure = signal_nuclei_plot(signal_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")
 
                 if 'sequence_raw' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)
-                    signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    signal_data = sequence_signal_data[exp][sequence_name]
-                    figure = signal_image_plot(signal_images, signal_data, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_image_slices = load_sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # if len(signal_image_slices)==0:
+                    #     signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 
         for exp in experiments:
@@ -146,8 +147,9 @@ def main():
                     logging.info("--> Sequence image registration "+sequence_name)
                     register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
 
-        logging.info("--> Compiling signal data from all experiments "+str(experiments))
-        compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+        if args.data_compilation:
+            logging.info("--> Compiling signal data from all experiments "+str(experiments))
+            compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
                             
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
@@ -160,7 +162,7 @@ def main():
                     figure = signal_nuclei_plot(signal_normalized_data, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
 
-                if True:
+                if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_normalized_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
@@ -175,16 +177,26 @@ def main():
                     align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     detect_organ_primordia(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
 
-                if True:
+                if 'sequence_aligned' in args.map_plot:
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_aligned_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
+                
+                if 'sequence_aligned' in args.image_plot:
+                    logging.info("--> Plotting signal images "+sequence_name)
+                    # signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                    signal_image_slices = load_sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    if len(signal_image_slices)==0:
+                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_aligned_signals.png")
 
-        if True:
+        if args.data_compilation:
             logging.info("--> Compiling signal data from all experiments "+str(experiments))
             compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-
+            compile_primordia_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
 
 
 
