@@ -199,7 +199,7 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
     return primordia_extrema_data
 
 
-def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orientation=1, r_max=80, cell_radius=5., density_k=0.25, microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orientation=1, r_max=120, cell_radius=5., density_k=0.25, microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
     sequence_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=verbose, debug=debug, loglevel=loglevel)
@@ -279,6 +279,13 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
         figure.gca().axis('equal')
     figure.set_size_inches(10,10)
     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_sequence_registered_nuclei.png")
+
+    for f in filenames:
+        if not 'qDII' in sequence_data[f].columns:
+            sequence_data[f]['qDII'] = sequence_data[f]['DIIV']
+            sequence_data[f]['Normalized_qDII'] = sequence_data[f]['Normalized_DIIV']
+            sequence_data[f]['DIIV'] = sequence_data[f]['DIIV']*sequence_data[f]['TagBFP']
+
 
     #registration_filenames = [f for f in filenames]
     registration_filenames = [f for f in filenames if (not 't04' in f) and (int(f[-2:]) <= 10)]   

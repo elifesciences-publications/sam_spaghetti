@@ -31,7 +31,7 @@ import logging
 
 
 
-def signal_image_plot(image_slices, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, save_image_views=True, verbose=False, debug=False, loglevel=0):
+def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, save_image_views=True, verbose=False, debug=False, loglevel=0):
     
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -87,9 +87,10 @@ def signal_image_plot(image_slices, signal_names=None, filenames=None, aligned=F
                 signal_display_list += [[s1,s2] for s2 in signal_names if (s2 < s1) and (s2 != reference_name)]
         signal_display_list += [[s for s in signal_names if s != reference_name]]
 
-        figure = plt.figure(0)
-        figure.clf()
-        figure.patch.set_facecolor('w')
+        if figure is None:
+            figure = plt.figure(0)
+            figure.clf()
+            figure.patch.set_facecolor('w')
 
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
 
@@ -153,7 +154,7 @@ def signal_image_plot(image_slices, signal_names=None, filenames=None, aligned=F
         return figure
 
 
-def signal_nuclei_plot(signal_data, signal_names=None, filenames=None, registered=False, aligned=False, reference_name='TagBFP', r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=None, registered=False, aligned=False, reference_name='TagBFP', r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
     
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
     
@@ -169,9 +170,13 @@ def signal_nuclei_plot(signal_data, signal_names=None, filenames=None, registere
             signal_names = [c for c in signal_data[filenames[0]].columns if c in quantified_signals]
             signal_names.remove(reference_name)
 
-        figure = plt.figure(0)
-        figure.clf()
-        figure.patch.set_facecolor('w')
+        signal_names = [c for c in signal_names if c in signal_colormaps]
+        signal_names = [c for c in signal_names if c in signal_lut_ranges]
+
+        if figure is None:
+            figure = plt.figure(0)
+            figure.clf()
+            figure.patch.set_facecolor('w')
 
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
             file_data = signal_data[filename]
@@ -265,16 +270,17 @@ def signal_nuclei_plot(signal_data, signal_names=None, filenames=None, registere
 
 
 
-def signal_map_plot(signal_data, signal_names=None, filenames=None, registered=False, aligned=False, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None, registered=False, aligned=False, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
     
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
     
     if filenames is None:
         filenames = np.sort(signal_data.keys())
 
-    figure = plt.figure(0)
-    figure.clf()
-    figure.patch.set_facecolor('w')
+    if figure is None:
+        figure = plt.figure(0)
+        figure.clf()
+        figure.patch.set_facecolor('w')
 
     if len(filenames)>0:
         

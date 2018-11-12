@@ -176,13 +176,19 @@ def main():
                     sam_orientation = get_sequence_orientation(sequence_name,data_dirname)
                     align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     detect_organ_primordia(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                
+                if 'sequence_aligned' in args.nuclei_plot:
+                    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    logging.info("--> Plotting aligned nuclei signals "+sequence_name)
+                    figure = signal_nuclei_plot(signal_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_nuclei_signals.png")
 
                 if 'sequence_aligned' in args.map_plot:
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_aligned_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
-                
+
                 if 'sequence_aligned' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)
                     # signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
