@@ -8,9 +8,22 @@ sam_spaghetti
 
 SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation
 
+-----
+Requirements
+-----
+
+- timagetk (https://gitlab.inria.fr/mosaic/timagetk)
+- cellcomplex (https://gitlab.inria.fr/mosaic/cellcomplex)
+- tissue_nukem_3d (https://gitlab.inria.fr/mosaic/tissue_nukem_3d)
+
+-----
+Usage
+-----
+
 Two scripts are provided in `scripts/` to perform complex computational analysis on CZI images of Shoot Apical Meristems (SAMs)
 
-## Detection, quantification and alignment from CZI files (with optional visualization)
+Detection, quantification and alignment from CZI files (with optional visualization)
+-----
 
 usage: sam_experiment_detect_quantify_and_align.py [-h] -e EXPERIMENTS
                                                    [EXPERIMENTS ...]
@@ -25,12 +38,12 @@ usage: sam_experiment_detect_quantify_and_align.py [-h] -e EXPERIMENTS
                                                    [-G] [-P] [-C] [-v] [-d]
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -e EXPERIMENTS [EXPERIMENTS ...], --experiments EXPERIMENTS [EXPERIMENTS ...]
+  -h, --help            show help message and exit
+  -e EXPERIMENTS, --experiments EXPERIMENTS
                         List of experiment identifiers
+                        
   -dir DATA_DIRECTORY, --data-directory DATA_DIRECTORY
-                        Path to SAM sequence data files directory
-                        (nomenclature, orientation...)
+                        Path to SAM sequence data files directory containing nomenclature.csv, experiment_info.csv, nuclei_image_sam_orientation.csv
   -M MICROSCOPY_DIRECTORY, --microscopy-directory MICROSCOPY_DIRECTORY
                         Path to CZI image directory [default :
                         data_directory/microscopy]
@@ -40,7 +53,7 @@ optional arguments:
   -D, --detection       Run nuclei detection on all experiments
   -s, --save-channels   Save INR image files for each microscopy image channel
   -R, --registration    Run sequence image registration on all experiments
-  -i {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...], --image-plot {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]
+  -i sequence_raw sequence_aligned, --image-plot sequence_raw sequence_aligned
                         List of image projections types to plot
                         ['sequence_raw', 'sequence_aligned']
   -p {max_intensity,L1_slice}, --projection-type {max_intensity,L1_slice}
@@ -63,7 +76,8 @@ optional arguments:
   -v, --verbose         Verbose
   -d, --debug           Debug
   
-  ## Image averaging 
+  Image averaging 
+  -----
   
   usage: sam_experiment_image_projection_averaging.py [-h] -e EXPERIMENTS
                                                     [EXPERIMENTS ...]
