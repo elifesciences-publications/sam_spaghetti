@@ -10,9 +10,8 @@ import vplants.tissue_nukem_3d.nuclei_image_topomesh
 reload(vplants.tissue_nukem_3d.nuclei_image_topomesh)
 from vplants.tissue_nukem_3d.nuclei_image_topomesh import nuclei_image_topomesh
 
-from vplants.image.spatial_image import SpatialImage
-from vplants.image.serial.all import imsave
-from vplants.image.serial.all import imread as oa_imread
+from timagetk.components import SpatialImage
+from timagetk.io import imsave
 
 from vplants.cellcomplex.property_topomesh.property_topomesh_io import save_ply_property_topomesh
 from vplants.cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to_dataframe
@@ -126,7 +125,7 @@ def detect_from_czi(czi_file, no_organ_file=None, reference_name='TagBFP', chann
                     logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving cropped substracted "+channel_name+" image")
                     imsave(img_file,substracted_img)
             else:
-                substracted_img = SpatialImage(np.maximum(0,(img_dict['DIIV'].astype(np.int32) - img_dict['PIN1'].astype(np.int32))).astype(np.uint16),voxelsize=voxelsize)
+                substracted_img = SpatialImage(np.maximum(0,(img_dict['DIIV'].get_array().astype(np.int32) - img_dict['PIN1'].get_array().astype(np.int32))).astype(np.uint16),voxelsize=voxelsize)
             
                 if save_images:
                     logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving raw "+channel_name+" image")
@@ -173,6 +172,9 @@ def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, co
         logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving nuclei data")
         if ('DIIV' in df.columns)&('TagBFP' in df.columns):
             df['qDII'] = df['DIIV'].values/df['TagBFP'].values
+        if ('RGAV' in df.columns)&('TagBFP' in df.columns):
+            df['qRGA'] = df['RGAV'].values/df['TagBFP'].values
+
         df['label'] = df.index.values
         df.to_csv(image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/"+nomenclature_name+"_signal_data.csv",index=False)  
 

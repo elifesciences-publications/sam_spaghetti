@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import sam_spaghetti
-from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_sequence_orientation
+from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_from_czi
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices
@@ -16,7 +16,7 @@ import logging
 import argparse
 import os
 
-guillaume_dirname = "/Users/gcerutti/Desktop/WorkVP/SamMaps"
+guillaume_dirname = "/Users/gcerutti/Data/"
 calculus_dirname = "/projects/SamMaps/"
 sam_spaghetti_dirname = sam_spaghetti.__path__[0]+"/../../share/data"
 
@@ -89,6 +89,9 @@ def main():
                     nomenclature_names = [get_nomenclature_name(czi_filename,data_dirname) for czi_filename in czi_filenames]
                     is_not_detected = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_signal_data.csv") for filename in nomenclature_names]))
 
+                    channel_names = get_experiment_channels(exp, data_dirname)
+                    reference_name = get_experiment_reference(exp, data_dirname)
+
                     # if args.detection or np.any(is_not_detected.values()):
                     if not os.path.exists(image_dirname):
                         os.makedirs(image_dirname)
@@ -105,7 +108,7 @@ def main():
                         
                         if args.detection or is_not_detected[nomenclature_name]:
                             logging.info("--> Running detection on "+nomenclature_name)
-                            detect_from_czi(czi_filename, save_files=True, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                            detect_from_czi(czi_filename, save_files=True, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
                         else:
                             logging.info("--> Found detection output for "+nomenclature_name)
 

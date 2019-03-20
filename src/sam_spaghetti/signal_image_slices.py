@@ -9,7 +9,10 @@ from vplants.image.spatial_image import SpatialImage
 from vplants.image.registration import pts2transfo
 
 from timagetk.components import SpatialImage as TissueImage
-from timagetk.algorithms.trsf import BalTransformation, allocate_c_bal_matrix, apply_trsf, create_trsf
+
+from timagetk.wrapping.bal_trsf import TRSF_TYPE_DICT
+from timagetk.wrapping.bal_trsf import TRSF_UNIT_DICT
+from timagetk.algorithms.trsf import allocate_c_bal_matrix, apply_trsf, create_trsf
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
 
@@ -96,7 +99,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=True, 
                 reflections[filename] = reflection
                 alignment_transformations[filename] = alignment_transformation
         
-                alignment_trsf = create_trsf(param_str_2='-identity', trsf_type=BalTransformation.RIGID_3D, trsf_unit=BalTransformation.REAL_UNIT)
+                alignment_trsf = create_trsf(param_str_2='-identity', trsf_type=TRSF_TYPE_DICT['RIGID_3D'], trsf_unit=TRSF_UNIT_DICT['REAL_UNIT'])
                 allocate_c_bal_matrix(alignment_trsf.mat.c_struct, alignment_transformations[filename])
 
                 for i_signal, signal_name in enumerate(signal_names):

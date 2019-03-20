@@ -19,6 +19,22 @@ def get_experiment_microscopy(exp, dirname=sam_spaghetti_dirname):
     experiment_microscopy = dict(zip(experiment_data['experiment'],experiment_data['microscopy_directory']))
     return experiment_microscopy.get(exp,"")
 
+def get_experiment_channels(exp, dirname=sam_spaghetti_dirname):
+    experiment_file = dirname+"/experiment_info.csv"
+    experiment_data = pd.read_csv(experiment_file,sep=';')
+    experiment_data = experiment_data.replace(np.nan,"")
+    experiment_channels = dict(zip(experiment_data['experiment'],experiment_data['channel_names']))
+    channels = experiment_channels.get(exp)
+    return eval(channels) if channels != "" else None
+
+def get_experiment_reference(exp, dirname=sam_spaghetti_dirname):
+    experiment_file = dirname+"/experiment_info.csv"
+    experiment_data = pd.read_csv(experiment_file,sep=';')
+    experiment_data = experiment_data.replace(np.nan,"")
+    experiment_references = dict(zip(experiment_data['experiment'],experiment_data['reference_name']))
+    reference = experiment_references.get(exp)
+    return reference if reference != "" else None
+
 def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
     czi_filename = os.path.split(czi_file)[1]
     nomenclature_file = dirname+"/nomenclature.csv"
