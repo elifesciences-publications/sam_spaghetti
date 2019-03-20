@@ -37,17 +37,21 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                 # data = pd.read_csv(data_file)
             
                 if not aligned:
-                    data['Auxin'] = 1 - data['qDII']
+                    if 'qDII' in data.columns:
+                        data['Auxin'] = 1 - data['qDII']
+                    if 'qRGA' in data.columns:
+                        data['Gibberelins'] = 1 - data['qRGA']
 
                     if normalize_data:
                         for signal in ['CLV3']:
-                            #signal_data  = data[signal][data['model_coords_r']<2.*r_max/3.]
-                            signal_data  = data[signal][data['layer']==1]
-                            data['Normalized_'+signal] = data[signal]/signal_data.mean()
-                            clv3_threshold = 1.2
-                            #data['Normalized_'+signal] = data[signal]/max_clv3
-                    
-                        for signal in ['DIIV','qDII','Auxin','DR5','TagBFP']:
+                            if signal in data.columns:
+                                #signal_data  = data[signal][data['model_coords_r']<2.*r_max/3.]
+                                signal_data  = data[signal][data['layer']==1]
+                                data['Normalized_'+signal] = data[signal]/signal_data.mean()
+                                clv3_threshold = 1.2
+                                #data['Normalized_'+signal] = data[signal]/max_clv3
+
+                        for signal in ['DIIV','qDII','Auxin','RGAV','qRGA','Gibberelins','DR5','TagBFP']:
                             if signal in data.columns:
                                 signal_data  = data[signal][data['layer']==1]
                                 data['Normalized_'+signal] = 0.5 + 0.2*(data[signal]-signal_data.mean())/(signal_data.std())
