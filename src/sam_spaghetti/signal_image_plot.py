@@ -405,8 +405,8 @@ def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None,
                 figure.add_subplot(len(signal_names), len(filenames), i_signal * len(filenames) + i_time + 1)
 
                 if not aligned:
-                    figure.gca().set_xlim(-2 * r_max, 0)
-                    figure.gca().set_ylim(-2 * r_max, 0)
+                    figure.gca().set_xlim(0, -2 * r_max)
+                    figure.gca().set_ylim(0, -2 * r_max)
 
     return figure
 

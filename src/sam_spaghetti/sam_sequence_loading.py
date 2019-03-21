@@ -87,7 +87,7 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
                 file_signals = [c for c in signal_names if c in file_df.columns]
 
             for signal_name in file_signals:
-                signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+("_aligned" if aligned else "_")+projection_type+"_"+signal_name+"_slice.tif"
+                signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+("_aligned" if aligned else "_")+projection_type+"_"+signal_name+"_projection.tif"
                 # signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+("_aligned_" if aligned else "_")+projection_type+"_"+signal_name+"_slice.tif"
                 # signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+("_aligned_" if aligned else "_")+projection_type+"_"+signal_name+"_projection.tif"
                 if os.path.exists(signal_image_file):
