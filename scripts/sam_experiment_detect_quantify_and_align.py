@@ -98,19 +98,23 @@ def main():
 
                     for czi_filename in czi_filenames:
                         nomenclature_name = get_nomenclature_name(czi_filename,data_dirname)
-                        sequence_name = nomenclature_name[:-4]
 
-                        if not os.path.exists(image_dirname+"/"+sequence_name):
-                            os.makedirs(image_dirname+"/"+sequence_name)
+                        if nomenclature_name is not None:
+                            sequence_name = nomenclature_name[:-4]
 
-                        if not os.path.exists(image_dirname+"/"+sequence_name+"/"+nomenclature_name):
-                            os.makedirs(image_dirname+"/"+sequence_name+"/"+nomenclature_name)
-                        
-                        if args.detection or is_not_detected[nomenclature_name]:
-                            logging.info("--> Running detection on "+nomenclature_name)
-                            detect_from_czi(czi_filename, save_files=True, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                            if not os.path.exists(image_dirname+"/"+sequence_name):
+                                os.makedirs(image_dirname+"/"+sequence_name)
+
+                            if not os.path.exists(image_dirname+"/"+sequence_name+"/"+nomenclature_name):
+                                os.makedirs(image_dirname+"/"+sequence_name+"/"+nomenclature_name)
+
+                            if args.detection or is_not_detected[nomenclature_name]:
+                                logging.info("--> Running detection on "+nomenclature_name)
+                                detect_from_czi(czi_filename, save_files=True, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                            else:
+                                logging.info("--> Found detection output for "+nomenclature_name)
                         else:
-                            logging.info("--> Found detection output for "+nomenclature_name)
+                            logging.warning("--> No nomenclature found for " + czi_filename + ", skipping...")
 
     if not os.path.exists(image_dirname):
         logging.error("Result output directory not found, nothing left to do!")
@@ -139,8 +143,8 @@ def main():
                     # signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
                     # signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     signal_image_slices = load_sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    # if len(signal_image_slices)==0:
-                    #     signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    if len(signal_image_slices)==0:
+                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 

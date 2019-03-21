@@ -99,7 +99,6 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
                     signal_image_slices[signal_name][filename] = img
                 else:
                     logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
-
     return signal_image_slices
 
 

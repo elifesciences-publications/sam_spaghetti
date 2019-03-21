@@ -31,7 +31,7 @@ import logging
 
 
 
-def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, save_image_views=True, verbose=False, debug=False, loglevel=0):
+def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=110., microscope_orientation=-1, save_image_views=True, verbose=False, debug=False, loglevel=0):
     
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -112,6 +112,7 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
                 #     # blend = np.ones_like(image_views[reference_name][filename])
 
                 for signal_name in signals_to_display:
+                    print(signals_to_display)
 
                     if signal_name in ['PIN1','PI','PIN1-PI']:
                         # blend = 0.6*blend + 1.0*image_views[signal_name][filename]
@@ -133,13 +134,8 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
                 # blend = 0.8*blend+0.2*image_views[reference_name][filename]
                 blend = np.maximum(np.minimum(blend,1),0)
 
-
                 # figure.gca().imshow(np.transpose(blend,(1,0,2))[:,::-1],extent=extent)
                 figure.gca().imshow(blend,extent=extent)
-                # figure.gca().set_xlim(xx.min(),xx.max())
-                figure.gca().set_xlim(extent[0],extent[1])
-                # figure.gca().set_ylim(yy.min(),yy.max())
-                figure.gca().set_ylim(extent[3],extent[2])
                 figure.gca().axis('off')
 
                 if i_signal == 0:
@@ -150,6 +146,14 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
         figure.tight_layout()
         figure.subplots_adjust(wspace=0,hspace=0)
         figure.tight_layout()
+
+        for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
+            for i_signal, signals_to_display in enumerate(signal_display_list):
+                figure.add_subplot(len(signal_display_list),len(filenames),i_signal*len(filenames)+i_time+1)
+                # figure.gca().set_xlim(xx.min(),xx.max())
+                figure.gca().set_xlim(extent[0],extent[1])
+                # figure.gca().set_ylim(yy.min(),yy.max())
+                figure.gca().set_ylim(extent[3],extent[2])
 
         return figure
 
@@ -246,16 +250,6 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
                 # # CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
                 # # figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
 
-                if aligned:
-                    figure.gca().set_xlim(-r_max,r_max)
-                    figure.gca().set_ylim(-r_max,r_max)
-                elif registered:
-                    figure.gca().set_xlim(0,2*r_max)
-                    figure.gca().set_ylim(0,2*r_max)
-                else:
-                    figure.gca().set_xlim(0,2*r_max)
-                    figure.gca().set_ylim(0,2*r_max)
-
                 # figure.gca().axis('off')
 
                 # figure.add_subplot(len(signal_names)+2,len(filenames),(len(signal_names)+1)*len(filenames)+i_time+1)
@@ -265,6 +259,20 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
         # figure.set_size_inches(5*len(filenames),5)
         figure.tight_layout()
         figure.subplots_adjust(wspace=0,hspace=0)
+
+        for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
+            for i_signal, signal_name in enumerate(signal_names):
+                figure.add_subplot(len(signal_names), len(filenames), i_signal * len(filenames) + i_time + 1)
+
+                if aligned:
+                    figure.gca().set_xlim(-r_max, r_max)
+                    figure.gca().set_ylim(-r_max, r_max)
+                elif registered:
+                    figure.gca().set_xlim(0, 2 * r_max)
+                    figure.gca().set_ylim(0, 2 * r_max)
+                else:
+                    figure.gca().set_xlim(0, 2 * r_max)
+                    figure.gca().set_ylim(0, 2 * r_max)
 
         return figure
 
@@ -364,10 +372,6 @@ def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None,
                 #     CS = figure.gca().contour(xx, yy, np.linalg.norm([xx,yy],axis=0),np.linspace(0,80,9),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
                 #     figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
 
-                if not aligned:
-                    figure.gca().set_xlim(-2*r_max,0)
-                    figure.gca().set_ylim(-2*r_max,0)
-
                 if i_signal == 0:
                     figure.gca().set_title("t="+str(time)+"h",size=28)
 
@@ -394,6 +398,15 @@ def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None,
         # figure.set_size_inches(5*len(filenames),5)
         figure.tight_layout()
         figure.subplots_adjust(wspace=0,hspace=0)
+
+        for i_time, (time, filename) in enumerate(zip(file_times, filenames)):
+
+            for i_signal, signal_name in enumerate(signal_names):
+                figure.add_subplot(len(signal_names), len(filenames), i_signal * len(filenames) + i_time + 1)
+
+                if not aligned:
+                    figure.gca().set_xlim(-2 * r_max, 0)
+                    figure.gca().set_ylim(-2 * r_max, 0)
 
     return figure
 

@@ -27,7 +27,7 @@ import logging
 def sequence_signal_image_slices(sequence_name, image_dirname, save_files=True, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel+1)    
-    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=verbose, debug=debug, loglevel=loglevel+1)  
+    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel+1)
                
     if signal_names is None:
         signal_names = signal_images.keys()
