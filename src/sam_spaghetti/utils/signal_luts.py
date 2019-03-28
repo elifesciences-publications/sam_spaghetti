@@ -102,6 +102,9 @@ quantified_signals += ['next_relative_surfacic_growth']
 quantified_signals += ['previous_relative_surfacic_growth']
 
 signal_ranges= {}
+for s in quantified_signals:
+    if 'Normalized' in s:
+        signal_ranges[s] = (-1,2)
 # signal_ranges['DIIV'] = (1000,10000)
 signal_ranges['DIIV'] = (0,50000)
 signal_ranges['Normalized_DIIV'] = (0,1)
@@ -112,7 +115,7 @@ signal_ranges['Normalized_Auxin'] = (-1.0,2.0)
 signal_ranges['DR5'] = (0,50000)
 signal_ranges['AHP6'] = (0,10000)
 signal_ranges['CLV3'] = (0,50000)
-signal_ranges['TagBFP'] = (0,45000)
+signal_ranges['TagBFP'] = (0,25000)
 signal_ranges['tdT'] = (0,20000)
 # signal_ranges['PIN1'] = (1000,60000)
 signal_ranges['PIN1'] = (30000,60000)
@@ -142,6 +145,9 @@ channel_ranges['PI'] = (1000,30000)
 channel_ranges['RGAV'] = (2000,65000)
 
 signal_lut_ranges= {}
+for s in quantified_signals:
+    if 'Normalized' in s:
+        signal_lut_ranges[s] = (-0.5,1.5)
 signal_lut_ranges['CLV3'] = (0,40000)
 # signal_lut_ranges['DIIV'] = (500,6000)
 signal_lut_ranges['DIIV'] = (0,15000)
@@ -181,6 +187,8 @@ signal_colormaps['DIIV'] = 'lemon_hot'
 signal_colormaps['Normalized_DIIV'] = 'viridis_r'
 signal_colormaps['Normalized_Auxin'] = 'viridis'
 signal_colormaps['qDII'] = '1Flashy_green'
+signal_colormaps['RGAV'] = 'lemon_hot'
+signal_colormaps['qRGA'] = '1Flashy_purple'
 # signal_colormaps['Normalized_qDII'] = 'winter'
 signal_colormaps['Normalized_qDII'] = '1Flashy_green'
 # signal_colormaps['Auxin'] = '1Flashy_green_r'
@@ -193,9 +201,10 @@ signal_colormaps['TagBFP'] = 'gray'
 signal_colormaps['tdT'] = 'gray'
 signal_colormaps['PIN1'] = '1Flashy_turquoise'
 signal_colormaps['PI'] = '1Flashy_red'
+for s in quantified_signals:
+    if ('Normalized' in s) and (not s in signal_colormaps.keys()):
+        signal_colormaps[s] = signal_colormaps[s[11:]]
 
-signal_colormaps['RGAV'] = 'lemon_hot'
-signal_colormaps['qRGA'] = '1Flashy_purple'
 
 # signal_colormaps['gaussian_curvature'] = 'RdBu_r'
 signal_colormaps['gaussian_curvature'] = 'curvature'

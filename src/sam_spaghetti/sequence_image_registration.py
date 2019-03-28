@@ -57,4 +57,3 @@ def register_sequence_images(sequence_name, save_files=True, image_dirname=None,
 
     result = (transformed_images, rigid_transformations, vectorfield_transformations)
     return result
-            

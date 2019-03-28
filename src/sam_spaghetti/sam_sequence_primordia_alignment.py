@@ -475,8 +475,8 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         landscape_figure.gca().pcolormesh(xx,yy,4.*np.sqrt(qDII_gradient_ridges*qDII_gradient_valleys),cmap='Greens',antialiased=True,shading='gouraud',vmin=0,vmax=0.25,alpha=0.2)
 
         qdII_gradient_saddles = nd.binary_dilation(qDII_gradient_ridges*qDII_gradient_valleys>0.01,iterations=2)
-        landscape_figure.gca().contour(xx,yy,(qDII_gradient_ridges>0.03)&(file_map.confidence_map>0.5)&(True-qdII_gradient_saddles),[0.5],cmap='Oranges',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
-        landscape_figure.gca().contour(xx,yy,(qDII_gradient_valleys>0.03)&(file_map.confidence_map>0.5)&(True-qdII_gradient_saddles),[0.5],cmap='Purples',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
+        landscape_figure.gca().contour(xx,yy,(qDII_gradient_ridges>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Oranges',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
+        landscape_figure.gca().contour(xx,yy,(qDII_gradient_valleys>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Purples',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
         landscape_figure.gca().contour(xx,yy,(qdII_gradient_saddles)&(file_map.confidence_map>0.5),[0.5],cmap='Greens',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
  
         for a in xrange(16):

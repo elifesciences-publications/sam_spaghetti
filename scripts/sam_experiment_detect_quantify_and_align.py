@@ -5,8 +5,8 @@ import sam_spaghetti
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_from_czi
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
-from sam_spaghetti.signal_image_slices import sequence_signal_image_slices
-from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot
+from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices
+from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_image_primordium_plot
 from sam_spaghetti.sequence_image_registration import register_sequence_images
 from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
@@ -37,15 +37,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--experiments', help='List of experiment identifiers', nargs='+', required=True)
     parser.add_argument('-dir', '--data-directory', help='Path to SAM sequence data files directory (nomenclature, orientation...)', default=dirname)
-    parser.add_argument('-M', '--microscopy-directory', help='Path to CZI image directory [default : data_directory/microscopy]', default=None)
-    parser.add_argument('-N', '--nuclei-directory', help='Path to detected nuclei directory [default : data_directory/nuclei_images]', default=None)
+    parser.add_argument('-Mdir', '--microscopy-directory', help='Path to CZI image directory [default : data_directory/microscopy]', default=None)
+    parser.add_argument('-Ndir', '--nuclei-directory', help='Path to detected nuclei directory [default : data_directory/nuclei_images]', default=None)
     parser.add_argument('-D', '--detection', default=False, action='store_true', help='Run nuclei detection on all experiments')
     parser.add_argument('-s', '--save-channels', default=False, action='store_true', help='Save INR image files for each microscopy image channel')
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
-    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
+    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
     parser.add_argument('-p', '--projection-type', default='max_intensity', help='Projection type for the image plots [\'max_intensity\', \'L1_slice\']',choices=['max_intensity', 'L1_slice'])
     parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
     parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
+    parser.add_argument('-N', '--normalized', default=False, action='store_true', help='Display normalized signals when plotting')
     parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
     parser.add_argument('-C', '--data-compilation', default=False, action='store_true', help='Compile all the data from the experiments into .csv files in the data directory')
@@ -87,6 +88,7 @@ def main():
                 else:                    
                     czi_filenames = [experiment_dirname+"/"+f for f in os.listdir(experiment_dirname) if '.czi' in f]
                     nomenclature_names = [get_nomenclature_name(czi_filename,data_dirname) for czi_filename in czi_filenames]
+                    nomenclature_names = [n for n in nomenclature_names if n is not None]
                     is_not_detected = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_signal_data.csv") for filename in nomenclature_names]))
 
                     channel_names = get_experiment_channels(exp, data_dirname)
@@ -135,7 +137,7 @@ def main():
                 if 'sequence_raw' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
-                    figure = signal_nuclei_plot(signal_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure = signal_nuclei_plot(signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")
 
                 if 'sequence_raw' in args.image_plot:
@@ -166,13 +168,13 @@ def main():
 
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting nuclei growth "+sequence_name)
-                    figure = signal_nuclei_plot(signal_normalized_data, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure = signal_nuclei_plot(signal_normalized_data, normalized=args.normalized, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
 
                 if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
-                    figure = signal_map_plot(signal_normalized_data, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure = signal_map_plot(signal_normalized_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_signal_maps.png")  
 
 
@@ -187,13 +189,13 @@ def main():
                 if 'sequence_aligned' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting aligned nuclei signals "+sequence_name)
-                    figure = signal_nuclei_plot(signal_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure = signal_nuclei_plot(signal_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_nuclei_signals.png")
 
                 if 'sequence_aligned' in args.map_plot:
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
-                    figure = signal_map_plot(signal_aligned_data, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1) 
+                    figure = signal_map_plot(signal_aligned_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
 
                 if 'sequence_aligned' in args.image_plot:
@@ -205,6 +207,16 @@ def main():
                         signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_aligned_signals.png")
+
+                if 'sequence_primordia' in args.image_plot:
+                    logging.info("--> Plotting signal primordia images "+sequence_name)
+                    signal_image_slices = sequence_image_primordium_slices(sequence_name, image_dirname, r_max=80, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_all_primordia_plot(signal_image_slices, r_max=80, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_signals.png")
+                    # for primordium in signal_image_slices.values()[0].keys():
+                    #     figure = signal_image_primordium_plot(signal_image_slices, r_max=80, primordium=primordium, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    #     if figure is not None:
+                    #         figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_P" + str(primordium) + "_signals.png")
 
         if args.data_compilation:
             logging.info("--> Compiling signal data from all experiments "+str(experiments))
