@@ -6,8 +6,8 @@ from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_
 from sam_spaghetti.detection_quantification import detect_from_czi
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
-from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_image_primordium_plot, signal_nuclei_all_primordia_plot, \
-    signal_map_all_primordia_plot
+from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_nuclei_all_primordia_plot, signal_map_all_primordia_plot
+from sam_spaghetti.signal_map_computation import compute_signal_maps, compute_primordia_signal_maps, compute_average_signal_maps, compute_average_primordia_signal_maps
 from sam_spaghetti.sequence_image_registration import register_sequence_images
 from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
@@ -30,6 +30,8 @@ dirname = sam_spaghetti_dirname
 max_sam_id = 100
 max_time = 100
 
+plot_choices = ['sequence_raw', 'sequence_aligned', 'sequence_primordia', 'experiment_aligned', 'experiment_primordia', 'all_aligned', 'all_primordia']
+
 def main():
     """
 
@@ -45,10 +47,10 @@ def main():
     parser.add_argument('-D', '--detection', default=False, action='store_true', help='Run nuclei detection on all experiments')
     parser.add_argument('-s', '--save-channels', default=False, action='store_true', help='Save INR image files for each microscopy image channel')
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
-    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
-    parser.add_argument('-p', '--projection-type', default='max_intensity', help='Projection type for the image plots [\'max_intensity\', \'L1_slice\']',choices=['max_intensity', 'L1_slice'])
-    parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
-    parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
+    parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot',choices=plot_choices)
+    parser.add_argument('-p', '--projection-type', default='max_intensity', help='Projection type for the image plots',choices=['max_intensity', 'L1_slice'])
+    parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot',choices=plot_choices)
+    parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot',choices=plot_choices)
     parser.add_argument('-N', '--normalized', default=False, action='store_true', help='Display normalized signals when plotting')
     parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
@@ -177,40 +179,64 @@ def main():
 
                 if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                    signal_maps = compute_signal_maps(signal_normalized_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting maps "+sequence_name)
-                    figure = signal_map_plot(signal_normalized_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_map_plot(signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_signal_maps.png")  
 
-
+        sequence_aligned_signal_data = {}
+        sequence_primordia_signal_data = {}
+        sequence_aligned_signal_maps = {}
+        sequence_primordia_signal_maps = {}
         for exp in experiments:
+            sequence_aligned_signal_data[exp] = {}
+            sequence_primordia_signal_data[exp] = {}
+            sequence_aligned_signal_maps[exp] = {}
+            sequence_primordia_signal_maps[exp] = {}
             for sequence_name in sequence_signal_data[exp]:
                 if args.primordia_alignment:
                     logging.info("--> Sequence primordia alignment "+sequence_name)
                     sam_orientation = get_sequence_orientation(sequence_name,data_dirname)
                     align_sam_sequence(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     detect_organ_primordia(sequence_name, image_dirname, sam_orientation=sam_orientation, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-                
-                if 'sequence_aligned' in args.nuclei_plot:
+
+                if np.any([p in args.nuclei_plot for p in ['sequence_aligned','experiment_aligned','all_aligned']]):
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    sequence_aligned_signal_data[exp][sequence_name] = signal_data
+
+                if 'sequence_aligned' in args.nuclei_plot:
                     logging.info("--> Plotting aligned nuclei signals "+sequence_name)
-                    figure = signal_nuclei_plot(signal_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_nuclei_plot(sequence_aligned_signal_data[exp][sequence_name], aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_nuclei_signals.png")
 
-                if 'sequence_primordia' in args.nuclei_plot:
+                if np.any([p in args.nuclei_plot for p in ['sequence_primordia','experiment_primordia','all_primordia']]):
                     primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure = signal_nuclei_all_primordia_plot(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    sequence_primordia_signal_data[exp][sequence_name] = primordia_signal_data
+
+                if 'sequence_primordia' in args.nuclei_plot:
+                    logging.info("--> Plotting primordia nuclei signals "+sequence_name)
+                    figure = signal_nuclei_all_primordia_plot(sequence_primordia_signal_data[exp][sequence_name], normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_nuclei_signals.png")
 
-                if 'sequence_aligned' in args.map_plot:
+                if np.any([p in args.map_plot for p in ['sequence_aligned','experiment_aligned','all_aligned']]):
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
-                    logging.info("--> Plotting maps "+sequence_name)
-                    figure = signal_map_plot(signal_aligned_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
+                    signal_aligned_maps = compute_signal_maps(signal_aligned_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    sequence_aligned_signal_maps[exp][sequence_name] = signal_aligned_maps
+
+                if 'sequence_aligned' in args.map_plot:
+                    logging.info("--> Plotting signal maps "+sequence_name)
+                    figure = signal_map_plot(sequence_aligned_signal_maps[exp][sequence_name], aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")
+
+                if np.any([p in args.map_plot for p in ['sequence_primordia', 'experiment_primordia', 'all_primordia']]):
+                    primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
+                    primordia_signal_maps = compute_primordia_signal_maps(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    sequence_primordia_signal_maps[exp][sequence_name] = primordia_signal_maps
 
                 if 'sequence_primordia' in args.map_plot:
-                    primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure = signal_map_all_primordia_plot(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_nuclei_signal_maps.png")
+                    logging.info("--> Plotting primordia signal maps "+sequence_name)
+                    figure = signal_map_all_primordia_plot(sequence_primordia_signal_maps[exp][sequence_name], verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_signal_maps.png")
 
                 if 'sequence_aligned' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)
@@ -232,12 +258,78 @@ def main():
                     #     if figure is not None:
                     #         figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_P" + str(primordium) + "_signals.png")
 
+            if 'experiment_aligned' in args.nuclei_plot:
+                experiment_data = sequence_aligned_signal_data[exp].values()
+                experiment_times = np.sort(np.unique(np.concatenate([[int(f[-2:]) for f in d.keys()] for d in  experiment_data])))
+                experiment_aligned_signal_data = dict([("t"+str(time).zfill(2),pd.concat([d[f] for d in experiment_data for f in d.keys() if int(f[-2:])==time])) for time in experiment_times])
+                figure = signal_nuclei_plot(experiment_aligned_signal_data, aligned=True, normalized=args.normalized, alpha=1./len(sequence_aligned_signal_data[exp]), verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure.savefig(image_dirname + "/" + exp + "_L1_aligned_nuclei_signals.png")
+
+            if 'experiment_primordia' in args.nuclei_plot:
+                experiment_data = sequence_primordia_signal_data[exp].values()
+                experiment_primordia = np.sort(np.unique([int(p) for d in experiment_data for p in d.keys() ]))
+                experiment_times = np.sort(np.unique([int(f[-2:]) for d in experiment_data for p in d.values() for f in p.keys() ]))
+                experiment_primordium_data = dict([(p,dict([(f,v) for d in experiment_data for f,v in d[p].items()])) for p in experiment_primordia])
+                experiment_primordia_files = dict([(p,dict([(time,[f for f in experiment_primordium_data[p].keys() if int(f[-2:]) == time]) for time in experiment_times])) for p in experiment_primordia])
+                experiment_primordia_data = dict([(p,dict([("t" + str(time).zfill(2), pd.concat([experiment_primordium_data[p][f] for f in experiment_primordia_files[p][time]])) for time in experiment_times if len(experiment_primordia_files[p][time])>0])) for p in experiment_primordia])
+                figure = signal_nuclei_all_primordia_plot(experiment_primordia_data, normalized=args.normalized, alpha=1./len(sequence_primordia_signal_data[exp]), verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure.savefig(image_dirname + "/" + exp + "_primordia_nuclei_signals.png")
+
+            if 'experiment_aligned' in args.map_plot:
+                logging.info("--> Plotting average signal maps "+exp)
+                experiment_signal_maps = dict([(f,m) for s in sequence_aligned_signal_maps[exp].keys() for f,m in sequence_aligned_signal_maps[exp][s].items()])
+                time_average_maps = compute_average_signal_maps(experiment_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure = signal_map_plot(time_average_maps, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure.savefig(image_dirname + "/" + exp + "_average_L1_aligned_signal_maps.png")
+
+            if 'experiment_primordia' in args.map_plot:
+                logging.info("--> Plotting average primordia signal maps "+exp)
+                experiment_primordia_signal_maps = dict([(f,m) for s in sequence_primordia_signal_maps[exp].keys() for f,m in sequence_primordia_signal_maps[exp][s].items()])
+                time_primordia_average_maps = compute_average_primordia_signal_maps(experiment_primordia_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure = signal_map_all_primordia_plot(time_primordia_average_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+                figure.savefig(image_dirname + "/" + exp + "_average_primordia_signal_maps.png")
+
+        if 'all_aligned' in args.nuclei_plot:
+            all_experiments = [exp for exp in sequence_aligned_signal_data.keys() if len(sequence_aligned_signal_data[exp])>0]
+            experiment_string = "".join([all_experiments[0]] + ["_" + exp for exp in all_experiments[1:]]) if len(all_experiments) > 1 else all_experiments[0]
+            all_data = np.concatenate([sequence_aligned_signal_data[exp].values() for exp in all_experiments])
+            all_times = np.sort(np.unique(np.concatenate([[int(f[-2:]) for f in d.keys()] for d in all_data])))
+            all_aligned_signal_data = dict([("t"+str(time).zfill(2),pd.concat([d[f] for d in all_data for f in d.keys() if int(f[-2:])==time])) for time in all_times])
+            figure = signal_nuclei_plot(all_aligned_signal_data, aligned=True, normalized=args.normalized, alpha=1./len(all_data), verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure.savefig(image_dirname + "/" + experiment_string + "_L1_aligned_nuclei_signals.png")
+        
+        if 'all_primordia' in args.nuclei_plot:
+            all_experiments = [exp for exp in sequence_primordia_signal_data.keys() if len(sequence_primordia_signal_data[exp])>0]
+            experiment_string = "".join([all_experiments[0]] + ["_" + exp for exp in all_experiments[1:]]) if len(all_experiments)>1 else all_experiments[0]
+            all_data = np.concatenate([sequence_primordia_signal_data[exp].values() for exp in all_experiments])
+            all_primordia = np.sort(np.unique([int(p) for d in all_data for p in d.keys()]))
+            all_times = np.sort(np.unique([int(f[-2:]) for d in all_data for p in d.values() for f in p.keys()]))
+            all_primordium_data = dict([(p, dict([(f, v) for d in all_data for f, v in d[p].items()])) for p in all_primordia])
+            all_primordia_files = dict([(p, dict([(time, [f for f in all_primordium_data[p].keys() if int(f[-2:]) == time]) for time in all_times])) for p in all_primordia])
+            all_primordia_data = dict([(p, dict([("t" + str(time).zfill(2), pd.concat([all_primordium_data[p][f] for f in all_primordia_files[p][time]])) for time in all_times if len(all_primordia_files[p][time]) > 0])) for p in all_primordia])
+            figure = signal_nuclei_all_primordia_plot(all_primordia_data, normalized=args.normalized, alpha=1./len(all_data), verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure.savefig(image_dirname + "/" + experiment_string + "_primordia_nuclei_signals.png")
+
+        if 'all_aligned' in args.map_plot:
+            all_experiments = [exp for exp in sequence_aligned_signal_maps.keys() if len(sequence_aligned_signal_maps[exp])>0]
+            experiment_string = "".join([all_experiments[0]] + ["_" + exp for exp in all_experiments[1:]]) if len(all_experiments) > 1 else all_experiments[0]
+            all_signal_maps = dict([(f, m) for exp in all_experiments for s in sequence_aligned_signal_maps[exp].keys() for f, m in sequence_aligned_signal_maps[exp][s].items()])
+            time_average_maps = compute_average_signal_maps(all_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure = signal_map_plot(time_average_maps, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure.savefig(image_dirname + "/" + experiment_string + "_average_L1_aligned_signal_maps.png")
+
+        if 'all_primordia' in args.map_plot:
+            all_experiments = [exp for exp in sequence_primordia_signal_maps.keys() if len(sequence_primordia_signal_maps[exp]) > 0]
+            experiment_string = "".join([all_experiments[0]] + ["_" + exp for exp in all_experiments[1:]]) if len(all_experiments) > 1 else all_experiments[0]
+            all_primordia_signal_maps = dict([(f,m) for exp in all_experiments for s in sequence_primordia_signal_maps[exp].keys() for f,m in sequence_primordia_signal_maps[exp][s].items()])
+            time_primordia_average_maps = compute_average_primordia_signal_maps(all_primordia_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure = signal_map_all_primordia_plot(time_primordia_average_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure.savefig(image_dirname + "/" + experiment_string + "_average_primordia_signal_maps.png")
+
         if args.data_compilation:
             logging.info("--> Compiling signal data from all experiments "+str(experiments))
             compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
             compile_primordia_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
-
-
 
 
 if __name__ == "__main__":

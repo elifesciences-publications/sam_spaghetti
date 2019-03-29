@@ -329,7 +329,7 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Tr
             extent = rr.min(), rr.max(), zz.max(), zz.min()
 
             for primordium in primordia_range:
-                primordium_data = primordia_data[filename][primordia_data[filename]['primordium'] == primordium]
+                primordium_data = pd.concat([primordia_data[f][primordia_data[f]['primordium'] == primordium] for f in filenames])
                 if len(primordium_data) > 0:
                     primordium_theta = (primordium * golden_angle + 180) % 360 - 180
                     primordium_theta = primordium_theta + np.mean(primordium_data['aligned_theta'].values - primordium_theta)
@@ -422,7 +422,7 @@ def sequence_signal_data_primordium_slices(sequence_name, image_dirname, filenam
             aligned_points = file_data[['aligned_'+dim for dim in ['x','y','z']]].values
 
             for primordium in primordia_range:
-                primordium_data = primordia_data[filename][primordia_data[filename]['primordium'] == primordium]
+                primordium_data = pd.concat([primordia_data[f][primordia_data[f]['primordium'] == primordium] for f in filenames])
                 if len(primordium_data) > 0:
                     primordium_theta = (primordium * golden_angle + 180) % 360 - 180
                     primordium_theta = primordium_theta + np.mean(primordium_data['aligned_theta'].values - primordium_theta)
