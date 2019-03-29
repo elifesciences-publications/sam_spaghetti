@@ -5,8 +5,9 @@ import sam_spaghetti
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_from_czi
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
-from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices
-from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_image_primordium_plot
+from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
+from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_image_primordium_plot, signal_nuclei_all_primordia_plot, \
+    signal_map_all_primordia_plot
 from sam_spaghetti.sequence_image_registration import register_sequence_images
 from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
@@ -15,6 +16,8 @@ from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, d
 import logging
 import argparse
 import os
+
+from timagetk.algorithms.reconstruction import pts2transfo
 
 guillaume_dirname = "/Users/gcerutti/Data/"
 calculus_dirname = "/projects/SamMaps/"
@@ -44,8 +47,8 @@ def main():
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
     parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
     parser.add_argument('-p', '--projection-type', default='max_intensity', help='Projection type for the image plots [\'max_intensity\', \'L1_slice\']',choices=['max_intensity', 'L1_slice'])
-    parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
-    parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\']',choices=['sequence_raw', 'sequence_aligned'])
+    parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
+    parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot [\'sequence_raw\', \'sequence_aligned\', \'sequence_primordia\']',choices=['sequence_raw', 'sequence_aligned', 'sequence_primordia'])
     parser.add_argument('-N', '--normalized', default=False, action='store_true', help='Display normalized signals when plotting')
     parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
@@ -77,7 +80,6 @@ def main():
             logging.error("Experiment identifier \""+exp+"\" not recognized (consider adding it to the experiment data file in the data directory)")
             experiments.remove(exp)
         else:
-
             if args.detection and (microscopy_dirname is not None):
                 experiment_dirname = microscopy_dirname+"/"+get_experiment_microscopy(exp,data_dirname)
                 if os.path.exists(experiment_dirname+"/RAW"):
@@ -128,9 +130,11 @@ def main():
             sequence_signal_data[exp] = {}
             for sam_id in xrange(max_sam_id):
                 sequence_name = experiment_name+"_sam"+str(sam_id).zfill(2)
+                logging.debug("-> Trying to load sequence "+str(sequence_name))
                 signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                 if len(signal_data)>0:
                     sequence_signal_data[exp][sequence_name] = signal_data
+                    logging.debug("-> Loaded sequence "+str(sequence_name)+"!")
 
         for exp in experiments:
             for sequence_name in sequence_signal_data[exp]:
@@ -192,11 +196,21 @@ def main():
                     figure = signal_nuclei_plot(signal_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_nuclei_signals.png")
 
+                if 'sequence_primordia' in args.nuclei_plot:
+                    primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_nuclei_all_primordia_plot(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_nuclei_signals.png")
+
                 if 'sequence_aligned' in args.map_plot:
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_aligned_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_aligned_signal_maps.png")  
+
+                if 'sequence_primordia' in args.map_plot:
+                    primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_map_all_primordia_plot(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname + "/" + sequence_name + "/" + sequence_name + "_primordia_nuclei_signal_maps.png")
 
                 if 'sequence_aligned' in args.image_plot:
                     logging.info("--> Plotting signal images "+sequence_name)

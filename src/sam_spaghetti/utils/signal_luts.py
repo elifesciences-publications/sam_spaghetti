@@ -108,17 +108,17 @@ for s in quantified_signals:
 # signal_ranges['DIIV'] = (1000,10000)
 signal_ranges['DIIV'] = (0,50000)
 signal_ranges['Normalized_DIIV'] = (0,1)
-signal_ranges['qDII'] = (0,1.0)
+signal_ranges['qDII'] = (0,1.8)
 signal_ranges['Normalized_qDII'] = (0,1.5)
-signal_ranges['Auxin'] = (-0.5,1.0)
+signal_ranges['Auxin'] = (-1.0,1.0)
 signal_ranges['Normalized_Auxin'] = (-1.0,2.0)
 signal_ranges['DR5'] = (0,50000)
 signal_ranges['AHP6'] = (0,10000)
 signal_ranges['CLV3'] = (0,50000)
 signal_ranges['TagBFP'] = (0,25000)
 signal_ranges['tdT'] = (0,20000)
-# signal_ranges['PIN1'] = (1000,60000)
-signal_ranges['PIN1'] = (30000,60000)
+signal_ranges['PIN1'] = (1000,60000)
+# signal_ranges['PIN1'] = (30000,60000)
 signal_ranges['PI'] = (10000,40000)
 signal_ranges['RGAV'] = (0,65000)
 signal_ranges['Normalized_RGAV'] = (0,1)
@@ -140,8 +140,8 @@ channel_ranges['DR5'] = (2000,35000)
 channel_ranges['AHP6'] = (2000,30000)
 channel_ranges['CLV3'] = (2000,40000)
 channel_ranges['TagBFP'] = (2000,35000)
-channel_ranges['PIN1'] = (2000,50000)
-channel_ranges['PI'] = (1000,30000)
+channel_ranges['PIN1'] = (2000,30000)
+channel_ranges['PI'] = (2000,20000)
 channel_ranges['RGAV'] = (2000,65000)
 
 signal_lut_ranges= {}
@@ -200,7 +200,7 @@ signal_colormaps['AHP6'] = '1Flashy_turquoise'
 signal_colormaps['TagBFP'] = 'gray'
 signal_colormaps['tdT'] = 'gray'
 signal_colormaps['PIN1'] = '1Flashy_turquoise'
-signal_colormaps['PI'] = '1Flashy_red'
+signal_colormaps['PI'] = 'gray'
 for s in quantified_signals:
     if ('Normalized' in s) and (not s in signal_colormaps.keys()):
         signal_colormaps[s] = signal_colormaps[s[11:]]

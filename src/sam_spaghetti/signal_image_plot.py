@@ -29,7 +29,7 @@ from copy import deepcopy
 
 import logging
 
-def plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name='TagBFP'):
+def plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name='TagBFP', membrane_name='PI'):
     # blend = deepcopy(image_views[reference_name][filename])
     blend = np.zeros_like(image_views[reference_name][filename])
 
@@ -42,11 +42,10 @@ def plot_image_view_blend(image_views, filename, signals_to_display, figure, ext
     #     # blend = np.ones_like(image_views[reference_name][filename])
 
     for signal_name in signals_to_display:
-        print(signals_to_display)
-
         if signal_name in ['PIN1', 'PI', 'PIN1-PI']:
             # blend = 0.6*blend + 1.0*image_views[signal_name][filename]
-            blend += image_views[signal_name][filename]
+            # blend += image_views[signal_name][filename]
+            blend = np.maximum(blend, 0.6 * blend + 1. * image_views[signal_name][filename])
         else:
             # blend = np.maximum(blend,image_views[signal_name][filename])
             blend = np.maximum(blend, 0.2 + 1. * image_views[signal_name][filename])
@@ -59,7 +58,11 @@ def plot_image_view_blend(image_views, filename, signals_to_display, figure, ext
 
     # blend = np.maximum(blend,image_views[signal_name][filename])
 
-    blend *= image_views[reference_name][filename]
+    if np.any([signal_name in ['PIN1', 'PI', 'PIN1-PI'] for signal_name in signals_to_display]):
+        blend *= 0.6 + 1.0*image_views[membrane_name][filename]
+    else:
+        blend *= image_views[reference_name][filename]
+
     # blend = 1-blend
     # blend = 0.8*blend+0.2*image_views[reference_name][filename]
     blend = np.maximum(np.minimum(blend, 1), 0)
@@ -199,7 +202,10 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
 
             logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Creating 2D Views : " + filename + " " + str(signal_names))
             for i_signal, signal_name in enumerate(signal_names):
-                norm = Normalize(vmin=signal_ranges[signal_name][0], vmax=signal_ranges[signal_name][1])
+                if signal_name in ['PI','PIN1']:
+                    norm = Normalize(vmin=channel_ranges[signal_name][0],vmax=channel_ranges[signal_name][1])
+                else:
+                    norm = Normalize(vmin=signal_ranges[signal_name][0], vmax=signal_ranges[signal_name][1])
                 image_views[signal_name][filename] = cm.ScalarMappable(cmap=signal_colormaps[signal_name], norm=norm).to_rgba(image_primordia_slices[signal_name][primordium][filename])
 
 
@@ -260,7 +266,7 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
     if len(filenames) > 0:
         file_times = np.array([int(f[-2:]) for f in filenames])
 
-        file_primordia = [[(p,f) for f in image_primordia_slices[reference_name][p].keys()] for p in np.sort(image_primordia_slices[reference_name].keys())]
+        file_primordia = [[(p,f) for f in np.sort(image_primordia_slices[reference_name][p].keys())] for p in np.sort(image_primordia_slices[reference_name].keys())]
         file_primordia = np.concatenate([p for p in file_primordia if len(p)>0])
         print(file_primordia)
 
@@ -291,7 +297,10 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
 
                     logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Creating 2D Views : " + filename + " P" + str(primordium) + " " + str(signal_names))
                     for i_signal, signal_name in enumerate(signal_names):
-                        norm = Normalize(vmin=signal_ranges[signal_name][0], vmax=signal_ranges[signal_name][1])
+                        if signal_name in ['PI', 'PIN1']:
+                            norm = Normalize(vmin=channel_ranges[signal_name][0], vmax=channel_ranges[signal_name][1])
+                        else:
+                            norm = Normalize(vmin=signal_ranges[signal_name][0], vmax=signal_ranges[signal_name][1])
                         image_views[signal_name][(str(primordium),filename)] = cm.ScalarMappable(cmap=signal_colormaps[signal_name], norm=norm).to_rgba(image_primordia_slices[signal_name][primordium][filename])
 
 
@@ -309,7 +318,7 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
 
         for i_p, (primordium, filename) in enumerate(file_primordia):
 
-            time = file_times[filenames==filename]
+            time = file_times[filenames==filename][0]
 
             # blend = np.zeros_like(image_views[reference_name][filename])
 
@@ -461,6 +470,66 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
         return figure
 
 
+def signal_nuclei_all_primordia_plot(primordia_signal_data, figure=None, signal_names=None, filenames=None, normalized=True, reference_name='TagBFP', r_max=80., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+
+    primordia_range = np.sort(primordia_signal_data.keys())
+
+    if filenames is None:
+        filenames = np.sort(np.unique(np.concatenate([primordia_signal_data[p].keys() for p in primordia_range])))
+
+    if len(filenames) > 0:
+        file_times = np.array([int(f[-2:]) for f in filenames])
+
+        if signal_names is None:
+            # signal_names = [c for c in signal_data[filenames[0]].columns if (not "center" in c) and (not "layer" in c) and (not 'Unnamed' in c) and (not "label" in c)]
+            if normalized:
+                signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals]
+            else:
+                signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals and (not 'Normalized' in c)]
+            # signal_names.remove(reference_name)
+
+        signal_names = [c for c in signal_names if c in signal_colormaps]
+        signal_names = [c for c in signal_names if c in signal_lut_ranges]
+
+        file_primordia = [[(p, f) for f in np.sort(primordia_signal_data[p].keys())] for p in np.sort(primordia_signal_data.keys())]
+        file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
+
+        if figure is None:
+            figure = plt.figure(0)
+            figure.clf()
+            figure.patch.set_facecolor('w')
+
+        for i_p, (primordium, filename) in enumerate(file_primordia):
+            if filename in primordia_signal_data[int(primordium)].keys():
+                file_primordium_data = primordia_signal_data[int(primordium)][filename]
+                time = file_times[filenames == filename][0]
+                i_time = np.arange(len(filenames))[filenames == filename][0]
+
+                for i_signal, signal_name in enumerate(signal_names):
+
+                    figure.add_subplot(len(signal_names), len(file_primordia), i_signal * len(file_primordia) + i_p + 1)
+                    figure.gca().scatter(file_primordium_data['radial_distance'].values, file_primordium_data['aligned_z'].values, c=file_primordium_data[signal_name].values, s=480, linewidth=0, cmap=signal_colormaps[signal_name], vmin=signal_lut_ranges[signal_name][0], vmax=signal_lut_ranges[signal_name][1])
+
+                    if i_signal == 0:
+                        figure.gca().set_title("P"+str(primordium)+" t=" + str(time) + "h", size=28)
+
+                    if i_p == 0:
+                        figure.gca().set_ylabel(signal_name, size=28)
+
+                    figure.gca().axis('equal')
+
+        figure.set_size_inches(10*len(file_primordia),6*len(signal_names))
+        figure.tight_layout()
+        figure.subplots_adjust(wspace=0,hspace=0)
+
+        for i_p, (primordium, filename) in enumerate(file_primordia):
+            for i_signal, signal_name in enumerate(signal_names):
+                figure.add_subplot(len(signal_names), len(file_primordia), i_signal * len(file_primordia) + i_p + 1)
+                figure.gca().set_xlim(0, r_max)
+                figure.gca().set_ylim(-0.5*r_max, 0.1*r_max)
+
+        return figure
+
 
 def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None, normalized=True, registered=False, aligned=False, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
     
@@ -597,5 +666,70 @@ def signal_map_plot(signal_data, figure=None, signal_names=None, filenames=None,
 
     return figure
 
+
+def signal_map_all_primordia_plot(primordia_signal_data, figure=None, signal_names=None, filenames=None, normalized=True, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=80., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+
+    primordia_range = np.sort(primordia_signal_data.keys())
+
+    if filenames is None:
+        filenames = np.sort(np.unique(np.concatenate([primordia_signal_data[p].keys() for p in primordia_range])))
+
+    if len(filenames) > 0:
+        file_times = np.array([int(f[-2:]) for f in filenames])
+
+        if signal_names is None:
+            # signal_names = [c for c in signal_data[filenames[0]].columns if (not "center" in c) and (not "layer" in c) and (not 'Unnamed' in c) and (not "label" in c)]
+            if normalized:
+                signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals]
+            else:
+                signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals and (not 'Normalized' in c)]
+            # signal_names.remove(reference_name)
+
+        signal_names = [c for c in signal_names if c in signal_colormaps]
+        signal_names = [c for c in signal_names if c in signal_lut_ranges]
+
+        file_primordia = [[(p, f) for f in np.sort(primordia_signal_data[p].keys())] for p in np.sort(primordia_signal_data.keys())]
+        file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
+
+        if figure is None:
+            figure = plt.figure(0)
+            figure.clf()
+            figure.patch.set_facecolor('w')
+
+        for i_p, (primordium, filename) in enumerate(file_primordia):
+            if filename in primordia_signal_data[int(primordium)].keys():
+                file_primordium_data = primordia_signal_data[int(primordium)][filename]
+                time = file_times[filenames == filename][0]
+                i_time = np.arange(len(filenames))[filenames == filename][0]
+
+                file_primordium_data['slice_x'] = file_primordium_data['radial_distance'].values
+                file_primordium_data['slice_y'] = file_primordium_data['aligned_z'].values
+                signal_map = SignalMap(file_primordium_data, position_name='slice', extent=r_max, origin=np.array([0,0]), polar=False, radius=cell_radius, density_k=density_k)
+
+                for i_signal, signal_name in enumerate(signal_names):
+
+                    figure.add_subplot(len(signal_names), len(file_primordia), i_signal * len(file_primordia) + i_p + 1)
+
+                    plot_signal_map(signal_map, signal_name, figure, distance_rings=False, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name],signal_lut_range=signal_lut_ranges[signal_name])
+
+                    if i_signal == 0:
+                        figure.gca().set_title("P"+str(primordium)+" t=" + str(time) + "h", size=28)
+
+                    if i_p == 0:
+                        figure.gca().set_ylabel(signal_name, size=28)
+
+                    figure.gca().axis('on')
+
+        figure.set_size_inches(10*len(file_primordia),6*len(signal_names))
+        figure.tight_layout()
+        figure.subplots_adjust(wspace=0,hspace=0)
+
+        for i_p, (primordium, filename) in enumerate(file_primordia):
+            for i_signal, signal_name in enumerate(signal_names):
+                figure.add_subplot(len(signal_names), len(file_primordia), i_signal * len(file_primordia) + i_p + 1)
+                figure.gca().set_xlim(0, r_max)
+                figure.gca().set_ylim(-0.5*r_max, 0.1*r_max)
+
+        return figure
 
 

@@ -249,7 +249,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=True, 
         return image_slices
 
 
-def image_angular_slice(img, theta=0., resolution=None, extent=None, width=0):
+def image_angular_slice(img, theta=0., resolution=None, extent=None, width=0.):
     img_center = (np.array(img.shape) * np.array(img.voxelsize)) / 2.
 
     if resolution is None:
@@ -348,7 +348,7 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Tr
                         # image_theta = primordium_theta - 90 # transpose + flip X
                         # image_theta = primordium_theta + 90 # transpose + flip Y
 
-                        slice_img = image_angular_slice(aligned_images[signal_name][filename],theta=image_theta,extent=(0,r_max),width=2.)
+                        slice_img = image_angular_slice(aligned_images[signal_name][filename],theta=image_theta,extent=(0,r_max),width=0. if signal_name in ['PI','PIN1'] else 2.)
                         print(rr.shape,zz.shape,slice_img.shape)
                         image_slices[signal_name][primordium][filename] = TissueImage(np.transpose(slice_img),voxelsize=(resolution,reference_img.voxelsize[2]))
 
@@ -364,3 +364,78 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Tr
 
     return image_slices
 
+
+def sequence_signal_data_primordium_slices(sequence_name, image_dirname, filenames=None, primordia_range=range(-3,6), width=2., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+
+    signal_images = load_sequence_signal_images(sequence_name, image_dirname, signal_names=['TagBFP'], verbose=verbose, debug=debug, loglevel=loglevel + 1)
+    aligned_signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=verbose, debug=debug, loglevel=loglevel + 1)
+    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=verbose, debug=debug, loglevel=loglevel + 1)
+    primordia_data = load_sequence_primordia_data(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel + 1)
+
+    if filenames is None:
+        filenames = np.sort(signal_data.keys())
+
+    if len(filenames) > 0:
+        file_times = np.array([int(f[-2:]) for f in filenames])
+
+        signal_data_slices = {}
+        for primordium in primordia_range:
+            signal_data_slices[primordium] = {}
+
+        alignment_transformations = {}
+
+        for i_time, (time, filename) in enumerate(zip(file_times, filenames)):
+
+            reference_img = signal_images.values()[0][filename]
+
+            file_data = aligned_signal_data[filename]
+            file_data = file_data[file_data['layer'] == 1]
+
+            img_points = file_data[['center_'+dim for dim in ['x','y','z']]].values
+            aligned_points = file_data[['aligned_'+dim for dim in ['x','y','z']]].values
+
+            alignment_transformation = pts2transfo(microscope_orientation * img_points, microscope_orientation * aligned_points)
+
+            reflection = np.sign(alignment_transformation[0, 0] * alignment_transformation[1, 1]) == -1
+            if reflection:
+                img_points[:,1] =  microscope_orientation * reference_img.shape[1] * reference_img.voxelsize[1] - img_points[:,1]
+                alignment_transformation = pts2transfo(microscope_orientation * img_points, microscope_orientation * aligned_points)
+
+            alignment_transformations[filename] = alignment_transformation
+
+            file_data = signal_data[filename]
+
+            image_points = file_data[['center_'+dim for dim in ['x','y','z']]].values
+            if reflection:
+                image_points[:, 1] = microscope_orientation * reference_img.shape[1] * reference_img.voxelsize[1] - image_points[:, 1]
+
+            homogeneous_points = np.concatenate([microscope_orientation * image_points,np.ones((len(file_data),1))],axis=1)
+            aligned_homogeneous_points = np.einsum("...ij,...j->...i",alignment_transformation,homogeneous_points)
+
+            file_data['aligned_x'] = microscope_orientation * aligned_homogeneous_points[:,0]
+            file_data['aligned_y'] = microscope_orientation * aligned_homogeneous_points[:,1]
+            file_data['aligned_z'] = microscope_orientation * aligned_homogeneous_points[:,2]
+
+            file_data['radial_distance'] = np.linalg.norm([file_data['aligned_x'], file_data['aligned_y']], axis=0)
+            file_data['aligned_theta'] = 180. / np.pi * np.sign(file_data['aligned_y']) * np.arccos(file_data['aligned_x'] / file_data['radial_distance'])
+
+            aligned_points = file_data[['aligned_'+dim for dim in ['x','y','z']]].values
+
+            for primordium in primordia_range:
+                primordium_data = primordia_data[filename][primordia_data[filename]['primordium'] == primordium]
+                if len(primordium_data) > 0:
+                    primordium_theta = (primordium * golden_angle + 180) % 360 - 180
+                    primordium_theta = primordium_theta + np.mean(primordium_data['aligned_theta'].values - primordium_theta)
+                    primordium_theta = (primordium_theta + 180) % 360 - 180
+
+                    primordium_plane_normal = np.array([-np.sin(np.radians(primordium_theta)),np.cos(np.radians(primordium_theta)),0])
+                    primordium_plane_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_plane_normal)
+
+                    primordium_vector = np.array([np.cos(np.radians(primordium_theta)), np.sin(np.radians(primordium_theta)), 0])
+                    primordium_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_vector)
+
+                    file_primordium_data = file_data[(np.abs(primordium_plane_dot_products)<width)&(primordium_dot_products>-width)]
+
+                    signal_data_slices[primordium][filename] = file_primordium_data
+
+        return signal_data_slices
