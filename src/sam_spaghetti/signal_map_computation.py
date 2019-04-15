@@ -8,7 +8,7 @@ from vplants.tissue_nukem_3d.signal_map import SignalMap
 from sam_spaghetti.utils.signal_luts import quantified_signals
 
 
-def compute_signal_maps(signal_data, signal_names=None, filenames=None, normalized=True, registered=False, aligned=False, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def compute_signal_maps(signal_data, signal_names=None, filenames=None, normalized=True, registered=False, aligned=False, polar=False, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=110., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -44,7 +44,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
                 position_name = 'center'
                 center = np.array([-r_max, -r_max])
 
-            signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=False, radius=cell_radius, density_k=density_k)
+            signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=polar, radius=cell_radius, density_k=density_k)
             for signal_name in signal_names:
                 signal_map.compute_signal_map(signal_name)
 

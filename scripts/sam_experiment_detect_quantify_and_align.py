@@ -13,6 +13,8 @@ from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_p
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
+from vplants.tissue_nukem_3d.signal_map import save_signal_map
+
 import logging
 import argparse
 import os
@@ -52,6 +54,7 @@ def main():
     parser.add_argument('-n', '--nuclei-plot', default=[], nargs='+', help='List of signal map types to plot',choices=plot_choices)
     parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot',choices=plot_choices)
     parser.add_argument('-N', '--normalized', default=False, action='store_true', help='Display normalized signals when plotting')
+    parser.add_argument('-pol', '--polar', default=False, action='store_true', help='Compute maps using polar coordinates')
     parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
     parser.add_argument('-C', '--data-compilation', default=False, action='store_true', help='Compile all the data from the experiments into .csv files in the data directory')
@@ -179,7 +182,7 @@ def main():
 
                 if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
-                    signal_maps = compute_signal_maps(signal_normalized_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_maps = compute_signal_maps(signal_normalized_data, normalized=args.normalized, polar=args.polar, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting maps "+sequence_name)
                     figure = signal_map_plot(signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_signal_maps.png")  
@@ -220,7 +223,9 @@ def main():
 
                 if np.any([p in args.map_plot for p in ['sequence_aligned','experiment_aligned','all_aligned']]):
                     signal_aligned_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)  
-                    signal_aligned_maps = compute_signal_maps(signal_aligned_data, aligned=True, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_aligned_maps = compute_signal_maps(signal_aligned_data, aligned=True, normalized=args.normalized, polar=args.polar, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    for filename, aligned_map in signal_aligned_maps.items():
+                        save_signal_map(aligned_map, image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_aligned_signal_map.map")
                     sequence_aligned_signal_maps[exp][sequence_name] = signal_aligned_maps
 
                 if 'sequence_aligned' in args.map_plot:
@@ -279,6 +284,8 @@ def main():
                 logging.info("--> Plotting average signal maps "+exp)
                 experiment_signal_maps = dict([(f,m) for s in sequence_aligned_signal_maps[exp].keys() for f,m in sequence_aligned_signal_maps[exp][s].items()])
                 time_average_maps = compute_average_signal_maps(experiment_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+                for t, average_map in time_average_maps.items():
+                    save_signal_map(average_map, image_dirname + "/" + exp + "_average_signal_map_" + t + ".map")
                 figure = signal_map_plot(time_average_maps, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                 figure.savefig(image_dirname + "/" + exp + "_average_L1_aligned_signal_maps.png")
 
@@ -315,6 +322,8 @@ def main():
             experiment_string = "".join([all_experiments[0]] + ["_" + exp for exp in all_experiments[1:]]) if len(all_experiments) > 1 else all_experiments[0]
             all_signal_maps = dict([(f, m) for exp in all_experiments for s in sequence_aligned_signal_maps[exp].keys() for f, m in sequence_aligned_signal_maps[exp][s].items()])
             time_average_maps = compute_average_signal_maps(all_signal_maps, verbose=args.verbose, debug=args.debug, loglevel=1)
+            for t,average_map in time_average_maps.items():
+                save_signal_map(average_map,image_dirname + "/" + experiment_string + "_average_signal_map_"+t+".map")
             figure = signal_map_plot(time_average_maps, aligned=True, verbose=args.verbose, debug=args.debug, loglevel=1)
             figure.savefig(image_dirname + "/" + experiment_string + "_average_L1_aligned_signal_maps.png")
 

@@ -579,6 +579,10 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
 def signal_map_all_primordia_plot(primordia_signal_maps, figure=None, signal_names=None, filenames=None, normalized=True, reference_name='TagBFP', cell_radius=7.5, density_k=0.55, r_max=80., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     primordia_range = np.sort(np.unique([int(p) for p,_ in primordia_signal_maps.keys()]))
+
+    if filenames is None:
+        filenames = np.sort(np.unique([f for _,f in primordia_signal_maps.keys()]))
+
     file_primordia = [[(str(p), f) for f in np.sort([f for primordium,f in primordia_signal_maps.keys() if (primordium==str(p)) and (f in filenames)])] for p in primordia_range]
     file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
 

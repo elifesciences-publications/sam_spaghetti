@@ -219,7 +219,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=True, 
                 else:
                     coords = (microscope_orientation*np.transpose([xx,yy,np.zeros_like(xx)],(1,2,0)))/np.array(reference_img.voxelsize)
 
-                extra_mask = np.any(coords > (np.array(reference_img.shape) - 1), axis=1).reshape(xx.shape)
+                extra_mask = np.any(coords > (np.array(reference_img.shape) - 1),axis=-1)
                 coords = np.maximum(np.minimum(coords, np.array(reference_img.shape) - 1), 0)
                 coords[np.isnan(coords)]=0
                 coords = coords.astype(int)
