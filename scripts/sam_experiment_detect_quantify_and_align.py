@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 
 import sam_spaghetti
+from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
-from sam_spaghetti.detection_quantification import detect_from_czi
+from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_nuclei_all_primordia_plot, signal_map_all_primordia_plot
@@ -45,8 +46,9 @@ def main():
     parser.add_argument('-e', '--experiments', help='List of experiment identifiers', nargs='+', required=True)
     parser.add_argument('-dir', '--data-directory', help='Path to SAM sequence data files directory (nomenclature, orientation...)', default=dirname)
     parser.add_argument('-Mdir', '--microscopy-directory', help='Path to CZI image directory [default : data_directory/microscopy]', default=None)
-    parser.add_argument('-Ndir', '--nuclei-directory', help='Path to detected nuclei directory [default : data_directory/nuclei_images]', default=None)
+    parser.add_argument('-o', '--output-directory', help='Path to detected nuclei directory [default : data_directory/nuclei_images]', default=None)
     parser.add_argument('-D', '--detection', default=False, action='store_true', help='Run nuclei detection on all experiments')
+    parser.add_argument('-S', '--segmentation', default=False, action='store_true', help='Run membrane segmentation on all experiments')
     parser.add_argument('-s', '--save-channels', default=False, action='store_true', help='Save INR image files for each microscopy image channel')
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
     parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot',choices=plot_choices)
@@ -77,15 +79,15 @@ def main():
         logging.warning("Microscopy directory not found! No detection will be performed.")
 
     experiments = args.experiments
-    image_dirname = args.nuclei_directory if args.nuclei_directory is not None else data_dirname+"/nuclei_images"
+    image_dirname = args.output_directory if args.output_directory is not None else data_dirname+"/nuclei_images"
 
     for exp in experiments:
         experiment_name = get_experiment_name(exp,data_dirname)
         if experiment_name == "":
-            logging.error("Experiment identifier \""+exp+"\" not recognized (consider adding it to the experiment data file in the data directory)")
+            logging.error("Experiment identifier \""+exp+"\" not recognized (consider adding it to the experiment_info.csv file in the data directory)")
             experiments.remove(exp)
         else:
-            if args.detection and (microscopy_dirname is not None):
+            if (args.detection or args.segmentation) and (microscopy_dirname is not None):
                 experiment_dirname = microscopy_dirname+"/"+get_experiment_microscopy(exp,data_dirname)
                 if os.path.exists(experiment_dirname+"/RAW"):
                     experiment_dirname += "/RAW"
@@ -93,10 +95,15 @@ def main():
                 if not os.path.exists(experiment_dirname):
                     logging.warning("Microscopy directory not found for "+exp+", no detection will be performed.")
                 else:                    
-                    czi_filenames = [experiment_dirname+"/"+f for f in os.listdir(experiment_dirname) if '.czi' in f]
-                    nomenclature_names = [get_nomenclature_name(czi_filename,data_dirname) for czi_filename in czi_filenames]
+                    microscopy_filenames = [experiment_dirname+"/"+f for f in os.listdir(experiment_dirname) if np.any([ext in f for ext in ['.czi','.lsm']])]
+                    nomenclature_names = [get_nomenclature_name(microscopy_filename,data_dirname) for microscopy_filename in microscopy_filenames]
                     nomenclature_names = [n for n in nomenclature_names if n is not None]
-                    is_not_detected = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_signal_data.csv") for filename in nomenclature_names]))
+
+                    is_not_processed = dict(zip(nomenclature_names, [False for f in nomenclature_names]))
+                    if args.detection:
+                        is_not_processed = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_signal_data.csv") for filename in nomenclature_names]))
+                    elif args.segmentation:
+                        is_not_processed = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_cell_data.csv") for filename in nomenclature_names]))
 
                     channel_names = get_experiment_channels(exp, data_dirname)
                     reference_name = get_experiment_reference(exp, data_dirname)
@@ -105,44 +112,52 @@ def main():
                     if not os.path.exists(image_dirname):
                         os.makedirs(image_dirname)
 
-                    for czi_filename in czi_filenames:
-                        nomenclature_name = get_nomenclature_name(czi_filename,data_dirname)
+                    for microscopy_filename in microscopy_filenames:
+                        nomenclature_name = get_nomenclature_name(microscopy_filename,data_dirname)
 
                         if nomenclature_name is not None:
                             sequence_name = nomenclature_name[:-4]
-
                             if not os.path.exists(image_dirname+"/"+sequence_name):
                                 os.makedirs(image_dirname+"/"+sequence_name)
-
                             if not os.path.exists(image_dirname+"/"+sequence_name+"/"+nomenclature_name):
                                 os.makedirs(image_dirname+"/"+sequence_name+"/"+nomenclature_name)
 
-                            if args.detection or is_not_detected[nomenclature_name]:
-                                logging.info("--> Running detection on "+nomenclature_name)
-                                detect_from_czi(czi_filename, save_files=True, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                            if args.segmentation:
+                                logging.error("--> Segmentation is not implemented yet!")
+                            elif args.detection or is_not_processed[nomenclature_name]:
+                                logging.info("--> Running detection on "+nomenclature_name+" "+reference_name)
+                                img_dict = load_image_from_microscopy(microscopy_filename, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, verbose=args.verbose, debug=args.debug, loglevel=1)
+                                detect_and_quantify(img_dict, reference_name=reference_name, signal_names=channel_names, image_dirname=image_dirname, nomenclature_name=nomenclature_name, verbose=args.verbose, debug=args.debug, loglevel=1)
                             else:
                                 logging.info("--> Found detection output for "+nomenclature_name)
                         else:
-                            logging.warning("--> No nomenclature found for " + czi_filename + ", skipping...")
+                            logging.warning("--> No nomenclature found for " + microscopy_filename + ", skipping...")
 
     if not os.path.exists(image_dirname):
         logging.error("Result output directory not found, nothing left to do!")
     else:
-        sequence_signal_data = {}
+        sequence_names = {}
         for exp in experiments:
             experiment_name = get_experiment_name(exp,data_dirname)
+            reference_name = get_experiment_reference(exp, data_dirname)
+            logging.info("--> Loading sequences for experiment "+str(exp))
 
-            sequence_signal_data[exp] = {}
+            sequence_names[exp] = []
             for sam_id in xrange(max_sam_id):
                 sequence_name = experiment_name+"_sam"+str(sam_id).zfill(2)
-                logging.debug("-> Trying to load sequence "+str(sequence_name))
+                logging.debug("--> Trying to load sequence "+str(sequence_name))
                 signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                 if len(signal_data)>0:
-                    sequence_signal_data[exp][sequence_name] = signal_data
-                    logging.debug("-> Loaded sequence "+str(sequence_name)+"!")
+                    sequence_names[exp] += [sequence_name]
+                    logging.debug("--> Loaded sequence "+str(sequence_name)+"!")
+                else:
+                    signal_images = load_sequence_signal_images(sequence_name, image_dirname,signal_names=[reference_name],verbose=args.verbose, debug=args.debug, loglevel=1)
+                    if len(signal_images) > 0:
+                        sequence_names[exp] += [sequence_name]
+                        logging.debug("--> Loaded sequence "+str(sequence_name)+"!")
 
         for exp in experiments:
-            for sequence_name in sequence_signal_data[exp]:
+            for sequence_name in sequence_names[exp]:
                 if 'sequence_raw' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
@@ -160,17 +175,18 @@ def main():
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 
         for exp in experiments:
-            for sequence_name in sequence_signal_data[exp]:
+            for sequence_name in sequence_names[exp]:
                 if args.registration:
                     logging.info("--> Sequence image registration "+sequence_name)
-                    register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    reference_name = get_experiment_reference(exp, data_dirname)
+                    register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
 
         if args.data_compilation:
             logging.info("--> Compiling signal data from all experiments "+str(experiments))
             compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
                             
         for exp in experiments:
-            for sequence_name in sequence_signal_data[exp]:
+            for sequence_name in sequence_names[exp]:
                 if args.growth_estimation:
                     logging.info("--> Computing sequence surfacic growth "+sequence_name)
                     compute_surfacic_growth(sequence_name, image_dirname, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
@@ -196,7 +212,7 @@ def main():
             sequence_primordia_signal_data[exp] = {}
             sequence_aligned_signal_maps[exp] = {}
             sequence_primordia_signal_maps[exp] = {}
-            for sequence_name in sequence_signal_data[exp]:
+            for sequence_name in sequence_names[exp]:
                 if args.primordia_alignment:
                     logging.info("--> Sequence primordia alignment "+sequence_name)
                     sam_orientation = get_sequence_orientation(sequence_name,data_dirname)

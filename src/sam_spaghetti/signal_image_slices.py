@@ -128,7 +128,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=True, 
 
         for filename in filenames:
             for signal_name in signal_names:
-                signal_img = signal_images[signal_name][filename].astype(float)
+                signal_img = signal_images[signal_name][filename].get_array().astype(float)
                 filtered_img = signal_img
                 if filtering:
                     start_time = current_time()

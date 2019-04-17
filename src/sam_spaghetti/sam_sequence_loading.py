@@ -4,14 +4,14 @@ import numpy as np
 from time import time as current_time
 
 from scipy.misc import imread as imread2d
-
-from vplants.image.serial.all import imread, imsave
-from vplants.image.spatial_image import SpatialImage
+from vplants.image.serial.all import imread
+from timagetk.io import imread
 
 import logging
 import os
 
 max_time = 100
+
 
 def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None, raw=True, verbose=False, debug=False, loglevel=0):
 
@@ -22,20 +22,20 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
     sequence_filenames = []
     for time in xrange(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
-        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
+        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
         for filename in sequence_filenames:
-            data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
-            file_df = pd.read_csv(data_filename)
 
             if signal_names is None:
+                data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
+                file_df = pd.read_csv(data_filename)
                 file_signals = [c for c in file_df.columns if (not "center" in c) and (not "layer" in c) and (not 'curvature' in c) and (not 'Unnamed' in c) and (not 'label' in c)]
             else:
-                file_signals = [c for c in signal_names if c in file_df.columns]
+                file_signals = [c for c in signal_names if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+c+".inr.gz")]
 
             for signal_name in file_signals:
 
@@ -111,8 +111,6 @@ def load_sequence_signal_data(sequence_name, image_dirname, normalized=False, al
     sequence_filenames = []
     for time in xrange(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
-        # data_filename = "".join([image_dirname+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
-        # data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
         data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
         if os.path.exists(data_filename):
             sequence_filenames += [filename]
@@ -122,12 +120,32 @@ def load_sequence_signal_data(sequence_name, image_dirname, normalized=False, al
         for filename in sequence_filenames:
             data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
             df = pd.read_csv(data_filename)
-            # if ('DIIV' in df.columns)&('TagBFP' in df.columns):
-            #     df['qDII'] = deepcopy(df['DIIV'].values)
-            #     df['DIIV'] = deepcopy(df['DIIV'].values*df['TagBFP'].values)
             signal_data[filename] = df
 
     return signal_data
+
+
+def load_sequence_cell_data(sequence_name, image_dirname, verbose=False, debug=False, loglevel=0):
+
+    logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
+
+    cell_data = {}
+
+    sequence_filenames = []
+    for time in xrange(max_time):
+        filename = sequence_name+"_t"+str(time).zfill(2)
+        data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_cell_data.csv"])
+        if os.path.exists(data_filename):
+            sequence_filenames += [filename]
+
+    if len(sequence_filenames)>0:
+        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        for filename in sequence_filenames:
+            data_filename = "".join([image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_cell_data.csv"])
+            df = pd.read_csv(data_filename)
+            cell_data[filename] = df
+
+    return cell_data
 
 
 def load_sequence_primordia_data(sequence_name, image_dirname, verbose=False, debug=False, loglevel=0):
