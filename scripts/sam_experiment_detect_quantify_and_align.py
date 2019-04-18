@@ -207,7 +207,7 @@ def main():
                     figure = signal_nuclei_plot(signal_normalized_data, normalized=args.normalized, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
 
-                if 'sequence_registered' in args.map_plot:
+                if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     signal_maps = compute_signal_maps(signal_normalized_data, normalized=args.normalized, polar=args.polar, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting maps "+sequence_name)
