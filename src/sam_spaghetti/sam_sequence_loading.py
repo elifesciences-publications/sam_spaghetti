@@ -4,7 +4,7 @@ import numpy as np
 from time import time as current_time
 
 from scipy.misc import imread as imread2d
-from vplants.image.serial.all import imread
+# from vplants.image.serial.all import imread
 from timagetk.io import imread
 
 import logging
@@ -60,6 +60,35 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
                 logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Loading : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
 
     return signal_images
+
+
+def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='PI', verbose=False, debug=False, loglevel=0):
+
+    logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
+
+    segmented_images = {}
+
+    sequence_filenames = []
+    for time in xrange(max_time):
+        filename = sequence_name+"_t"+str(time).zfill(2)
+        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
+            sequence_filenames += [filename]
+
+    if len(sequence_filenames)>0:
+        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence segmented images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+
+        for filename in sequence_filenames:
+            start_time = current_time()
+            logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+membrane_name+" segmented")
+            segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+membrane_name+"_seg.inr.gz"
+            if os.path.exists(segmented_image_file):
+                img = imread(segmented_image_file)
+                segmented_images[filename] = img
+            else:
+                logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+membrane_name+" segmented")
+            logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Loading : "+filename+" "+membrane_name+" segmented  ["+str(current_time() - start_time)+" s]")
+
+    return segmented_images
 
 
 def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names=None, projection_type='max_intensity', aligned=False, verbose=False, debug=False, loglevel=0):

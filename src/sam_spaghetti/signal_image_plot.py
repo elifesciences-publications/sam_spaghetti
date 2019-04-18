@@ -51,6 +51,8 @@ def plot_image_view_blend(image_views, filename, signals_to_display, figure, ext
 
     if np.any([signal_name in ['PIN1', 'PI', 'PIN1-PI'] for signal_name in signals_to_display]):
         blend *= 0.6 + 1.0*image_views[membrane_name][filename]
+    elif np.any(["_seg" in signal_name for signal_name in signals_to_display]):
+        blend *= 1
     else:
         blend *= image_views[reference_name][filename]
 
@@ -104,20 +106,23 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
             logging.info("".join(["  " for l in xrange(loglevel)])+"--> Creating 2D Views : "+filename+" "+str(signal_names))
             for i_signal, signal_name in enumerate(signal_names):
 
-                if projection_type == "L1_slice":
-                    norm = Normalize(vmin=channel_ranges[signal_name][0],vmax=channel_ranges[signal_name][1])
-                elif projection_type == "max_intensity":
-                    norm = Normalize(vmin=signal_ranges[signal_name][0],vmax=signal_ranges[signal_name][1])
-
-                image_views[signal_name][filename] = cm.ScalarMappable(cmap=signal_colormaps[signal_name],norm=norm).to_rgba(image_slices[signal_name][filename])
-
+                if not "_seg" in  signal_name:
+                    if projection_type == "L1_slice":
+                        norm = Normalize(vmin=channel_ranges[signal_name][0],vmax=channel_ranges[signal_name][1])
+                    elif projection_type == "max_intensity":
+                        norm = Normalize(vmin=signal_ranges[signal_name][0],vmax=signal_ranges[signal_name][1])
+                    image_views[signal_name][filename] = cm.ScalarMappable(cmap=signal_colormaps[signal_name], norm=norm).to_rgba(image_slices[signal_name][filename])
+                else:
+                    norm = Normalize(0,255)
+                    image_views[signal_name][filename] = cm.ScalarMappable(cmap='glasbey', norm=norm).to_rgba(image_slices[signal_name][filename]%256)
 
         signal_display_list = []
-        signal_display_list += [[s] for s in signal_names]
+        signal_display_list += [[s] for s in signal_names if not "_seg" in s]
         for s1 in signal_names:
-            if s1 != reference_name:
-                signal_display_list += [[s1,s2] for s2 in signal_names if (s2 < s1) and (s2 != reference_name)]
-        signal_display_list += [[s for s in signal_names if s != reference_name]]
+            if s1 != reference_name and not "_seg" in s1:
+                signal_display_list += [[s1,s2] for s2 in signal_names if (s2 < s1) and (s2 != reference_name and not "_seg" in s2)]
+        signal_display_list += [[s for s in signal_names if (s != reference_name and not "_seg" in s)]]
+        signal_display_list += [[s] for s in signal_names if "_seg" in s]
 
         if figure is None:
             figure = plt.figure(0)

@@ -6,6 +6,7 @@ from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
 from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
+from sam_spaghetti.segmentation_quantification import segment_and_quantify
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_nuclei_all_primordia_plot, signal_map_all_primordia_plot
 from sam_spaghetti.signal_map_computation import compute_signal_maps, compute_primordia_signal_maps, compute_average_signal_maps, compute_average_primordia_signal_maps
@@ -123,7 +124,9 @@ def main():
                                 os.makedirs(image_dirname+"/"+sequence_name+"/"+nomenclature_name)
 
                             if args.segmentation:
-                                logging.error("--> Segmentation is not implemented yet!")
+                                logging.error("--> Running segmentation on "+nomenclature_name)
+                                img_dict = load_image_from_microscopy(microscopy_filename, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, verbose=args.verbose, debug=args.debug, loglevel=1)
+                                segment_and_quantify(img_dict,image_dirname=image_dirname, nomenclature_name=nomenclature_name, verbose=args.verbose, debug=args.debug, loglevel=1)
                             elif args.detection or is_not_processed[nomenclature_name]:
                                 logging.info("--> Running detection on "+nomenclature_name+" "+reference_name)
                                 img_dict = load_image_from_microscopy(microscopy_filename, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, verbose=args.verbose, debug=args.debug, loglevel=1)
@@ -160,8 +163,10 @@ def main():
             for sequence_name in sequence_names[exp]:
                 if 'sequence_raw' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_images = load_sequence_signal_images(sequence_name, image_dirname, signal_names=[reference_name], verbose=args.verbose, debug=args.debug, loglevel=1)
+                    r_max = signal_images[reference_name].values()[0].shape[0]*signal_images[reference_name].values()[0].voxelsize[0]/2.
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
-                    figure = signal_nuclei_plot(signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_nuclei_plot(signal_data, r_max=r_max, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")
 
                 if 'sequence_raw' in args.image_plot:
@@ -170,7 +175,7 @@ def main():
                     # signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     signal_image_slices = load_sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     if len(signal_image_slices)==0:
-                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=0.25, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=None, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 

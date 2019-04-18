@@ -26,15 +26,6 @@ import matplotlib.pyplot as plt
 # channel_compute_ratios = ['DIIV']
 channel_compute_ratios = []
 
-def detect_from_microscopy(microscopy_file, no_organ_file=None, reference_name='TagBFP', channel_names=None, save_files=True, save_images=True, image_dirname=None, nomenclature_name=None, microscope_orientation=-1, verbose=True, debug=False,loglevel=0):
-    """
-    """
-
-
-
-    detect_and_quantify(img_dict,reference_name=reference_name,signal_names=channel_names,compute_ratios=compute_ratios,save_files=save_files,image_dirname=image_dirname,nomenclature_name=nomenclature_name,microscope_orientation=microscope_orientation,verbose=verbose,debug=debug,loglevel=loglevel)
-            
-
 def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, compute_ratios=None, save_files=True, image_dirname=None, nomenclature_name=None, microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
     """
     """
