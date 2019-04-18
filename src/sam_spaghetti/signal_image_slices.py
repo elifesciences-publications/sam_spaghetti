@@ -24,7 +24,7 @@ from copy import deepcopy
 
 import logging
 
-def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=True, signal_names=None, filenames=None,microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=False, signal_names=None, filenames=None,microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel + 1)
     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=verbose, debug=debug, loglevel=loglevel + 1)
@@ -104,12 +104,12 @@ def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=True
         return aligned_images
 
 
-def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False, signal_names=None, filenames=None, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False, signal_names=None, filenames=None, registered=False, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
-    signal_images = load_sequence_signal_images(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel+1)    
+    signal_images = load_sequence_signal_images(sequence_name, image_dirname, registered=registered, verbose=verbose, debug=debug, loglevel=loglevel+1)
     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel+1)
 
-    segmented_images = load_sequence_segmented_images(sequence_name, image_dirname, membrane_name=membrane_name, verbose=verbose, debug=debug, loglevel=loglevel+1)
+    segmented_images = load_sequence_segmented_images(sequence_name, image_dirname, membrane_name=membrane_name, registered=registered, verbose=verbose, debug=debug, loglevel=loglevel+1)
     if len(segmented_images)>0:
         signal_images[membrane_name+"_seg"] = segmented_images
 
@@ -165,6 +165,10 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                 X = file_data['aligned_x'].values
                 Y = file_data['aligned_y'].values
                 Z = file_data['aligned_z'].values
+            elif registered:
+                X = file_data['registered_x'].values
+                Y = file_data['registered_y'].values
+                Z = file_data['registered_z'].values
             else:
                 X = file_data['center_x'].values
                 Y = file_data['center_y'].values
@@ -182,7 +186,6 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
             else:
                 xx,yy = np.meshgrid(np.linspace(0,((size-1)*voxelsize)[0],((size-1)*np.abs(voxelsize))[0]/resolution+1),np.linspace(0,((size-1)*voxelsize)[1],((size-1)*np.abs(voxelsize))[0]/resolution+1))
 
-            print xx.shape, size, resolution, np.abs(voxelsize)[0]
             # extent = xx.max(),xx.min(),yy.min(),yy.max()
             extent = xx.min(),xx.max(),yy.max(),yy.min()
 
@@ -218,6 +221,9 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                         image_slices[signal_name][filename] = filtered_signal_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape)
                     image_slices[signal_name][filename][extra_mask] = 0
 
+                    if "_seg" in signal_name:
+                        image_slices[signal_name][filename][image_slices[signal_name][filename]==0] = 1
+
                     logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Slicing : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
 
             elif projection_type == "max_intensity":
@@ -227,7 +233,6 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                 else:
                     coords = (microscope_orientation*np.transpose([xx,yy,np.zeros_like(xx)],(1,2,0)))/np.array(reference_img.voxelsize)
 
-                print coords.shape
                 extra_mask = np.any(coords > (np.array(reference_img.shape) - 1),axis=-1)
                 coords = np.maximum(np.minimum(coords, np.array(reference_img.shape) - 1), 0)
                 coords[np.isnan(coords)]=0
@@ -238,14 +243,16 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                     if not '_seg' in signal_name:
                         start_time = current_time()
                         logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Projecting : "+filename+" "+signal_name)
-                        depth = (np.arange(size[2])/float(size[2]-1))[np.newaxis,np.newaxis]*np.ones_like(xx)[:,:,np.newaxis]
-                        depth = np.ones_like(depth)
+                        # depth = (np.arange(size[2])/float(size[2]-1))[np.newaxis,np.newaxis]*np.ones_like(xx)[:,:,np.newaxis]
+                        # depth = np.ones_like(depth)
 
                         if aligned:
-                            max_projection = (depth*(aligned_images[signal_name][filename].get_array()[coords[:2]].reshape(xx.shape + (reference_img.shape[2],)))).max(axis=2)
+                            # max_projection = (depth * (aligned_images[signal_name][filename].get_array()[coords[:2]].reshape(xx.shape + (reference_img.shape[2],)))).max(axis=2)
+                            max_projection = (aligned_images[signal_name][filename].get_array()[coords[:2]].reshape(xx.shape + (reference_img.shape[2],))).max(axis=2)
                             # max_projection = np.transpose(max_projection)[::-1,::-1]
                         else:
-                            max_projection = (depth*(filtered_signal_images[signal_name][filename][coords[:2]].reshape(xx.shape + (reference_img.shape[2],)))).max(axis=2)
+                            # max_projection = (depth * (filtered_signal_images[signal_name][filename][coords[:2]].reshape(xx.shape + (reference_img.shape[2],)))).max(axis=2)
+                            max_projection = (filtered_signal_images[signal_name][filename][coords[:2]].reshape(xx.shape + (reference_img.shape[2],))).max(axis=2)
                         max_projection[extra_mask] = 0
 
                         image_slices[signal_name][filename] = max_projection
@@ -254,9 +261,8 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                         logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Projecting : "+filename+" segmented " + membrane_name)
                         projection = labelled_image_projection(filtered_signal_images[signal_name][filename],direction=microscope_orientation)
                         image_slices[signal_name][filename] = projection
+                        image_slices[signal_name][filename][image_slices[signal_name][filename]==0] = 1
                         logging.info("".join(["  " for l in xrange(loglevel)]) + "  <-- Projecting : " + filename + " segmented " + membrane_name + " [" + str(current_time() - start_time) + " s]")
-
-                    print(filtered_signal_images[signal_name][filename].shape, " -> ", image_slices[signal_name][filename].shape)
 
             if save_files and projection_type in ['L1_slice']:
                 logging.info("".join(["  " for l in xrange(loglevel)])+"--> Saving 2D signal images : "+filename+" "+str(signal_names))
@@ -309,6 +315,7 @@ def labelled_image_projection(seg_img, axis=2, direction=1, background_label=1):
 
     return projected_img
 
+
 def image_angular_slice(img, theta=0., resolution=None, extent=None, width=0.):
     img_center = (np.array(img.shape) * np.array(img.voxelsize)) / 2.
 
@@ -347,7 +354,7 @@ def image_angular_slice(img, theta=0., resolution=None, extent=None, width=0.):
     return np.max(slice_images,axis=0)
 
 
-def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=True, signal_names=None, filenames=None, primordia_range=range(-3,6), reference_name='TagBFP', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=False, signal_names=None, filenames=None, primordia_range=range(-3,6), reference_name='TagBFP', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     aligned_images = sequence_aligned_signal_images(sequence_name, image_dirname, save_files=False, signal_names=signal_names, microscope_orientation=microscope_orientation, verbose=verbose, debug=debug, loglevel=loglevel + 1)
     primordia_data = load_sequence_primordia_data(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel+1)

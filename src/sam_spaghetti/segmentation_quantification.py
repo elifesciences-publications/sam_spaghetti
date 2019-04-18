@@ -14,10 +14,13 @@ from timagetk.plugins import h_transform
 from timagetk.plugins import region_labeling
 from timagetk.plugins import linear_filtering
 from timagetk.plugins import segmentation
+from timagetk.plugins import labels_post_processing
 from timagetk.algorithms.resample import isometric_resampling, resample
 from timagetk.algorithms.exposure import z_slice_contrast_stretch, z_slice_equalize_adapthist
 
+from vplants.tissue_analysis.property_spatial_image import PropertySpatialImage, property_spatial_image_to_dataframe
 from vplants.tissue_analysis.spatial_image_analysis import SpatialImageAnalysis
+
 
 def splitext_zip(fname):
     """
@@ -239,6 +242,9 @@ def segment_and_quantify(img_dict, membrane_name='PI', signal_names=None, save_f
 
     sequence_name = nomenclature_name[:-4]
 
+    if signal_names is None:
+        signal_names = img_dict.keys()
+
     membrane_img = img_dict[membrane_name]
 
     if h_min is None:
@@ -257,6 +263,36 @@ def segment_and_quantify(img_dict, membrane_name='PI', signal_names=None, save_f
         seg_file = image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/" + nomenclature_name + "_" + membrane_name + "_seg.inr.gz"
         imsave(seg_file, seg_img)
 
-    results = (seg_img,)
+    p_img = PropertySpatialImage(seg_img)
+    p_img.compute_default_image_properties()
+
+    voxelsize = seg_img.voxelsize
+    erosion_radius = 1.
+
+    if erosion_radius > 0:
+        eroded_seg_img = labels_post_processing(seg_img, method='labels_erosion', radius=erosion_radius, iterations=1)
+
+    cell_points = p_img.image_property('barycenter').values()
+
+    for i_s, signal_name in enumerate(signal_names):
+
+        signal_img = img_dict[signal_name]
+
+        cell_total_signals = nd.sum(signal_img.get_array().astype(float), eroded_seg_img.get_array(), index=p_img.labels)
+        cell_volumes = nd.sum(np.ones_like(seg_img.get_array()), seg_img.get_array(), index=p_img.labels)
+        cell_signals = dict(zip(p_img.labels, cell_total_signals / cell_volumes))
+        p_img.update_image_property(signal_name, cell_signals)
+
+    df = property_spatial_image_to_dataframe(p_img)
+    if save_files:
+        logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving segmented data")
+        if ('DIIV' in df.columns)&('TagBFP' in df.columns):
+            df['qDII'] = df['DIIV'].values/df['TagBFP'].values
+        if ('RGAV' in df.columns)&('TagBFP' in df.columns):
+            df['qRGA'] = df['RGAV'].values/df['TagBFP'].values
+        df.rename(index=str,columns=dict([('barycenter_'+dim,'center_'+dim) for dim in ['x','y','z']]),inplace=True)
+        df.to_csv(image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/"+nomenclature_name+"_cell_data.csv",index=False)
+
+    results = (df, seg_img,)
 
     return results

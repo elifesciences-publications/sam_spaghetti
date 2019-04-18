@@ -10,7 +10,7 @@ from sam_spaghetti.segmentation_quantification import segment_and_quantify
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_nuclei_all_primordia_plot, signal_map_all_primordia_plot
 from sam_spaghetti.signal_map_computation import compute_signal_maps, compute_primordia_signal_maps, compute_average_signal_maps, compute_average_primordia_signal_maps
-from sam_spaghetti.sequence_image_registration import register_sequence_images
+from sam_spaghetti.sequence_image_registration import register_sequence_images, apply_sequence_registration
 from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
 from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
@@ -34,7 +34,7 @@ dirname = sam_spaghetti_dirname
 max_sam_id = 100
 max_time = 100
 
-plot_choices = ['sequence_raw', 'sequence_aligned', 'sequence_primordia', 'experiment_aligned', 'experiment_primordia', 'all_aligned', 'all_primordia']
+plot_choices = ['sequence_raw', 'sequence_registered', 'sequence_aligned', 'sequence_primordia', 'experiment_aligned', 'experiment_primordia', 'all_aligned', 'all_primordia']
 
 def main():
     """
@@ -184,7 +184,13 @@ def main():
                 if args.registration:
                     logging.info("--> Sequence image registration "+sequence_name)
                     reference_name = get_experiment_reference(exp, data_dirname)
-                    register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    apply_sequence_registration(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+
+                if 'sequence_registered' in args.image_plot:
+                    signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=None, registered=True, aligned=False, save_files=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=None, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_registered_signals.png")
 
         if args.data_compilation:
             logging.info("--> Compiling signal data from all experiments "+str(experiments))
@@ -201,7 +207,7 @@ def main():
                     figure = signal_nuclei_plot(signal_normalized_data, normalized=args.normalized, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
 
-                if 'sequence_raw' in args.map_plot:
+                if 'sequence_registered' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
                     signal_maps = compute_signal_maps(signal_normalized_data, normalized=args.normalized, polar=args.polar, verbose=args.verbose, debug=args.debug, loglevel=1)
                     logging.info("--> Plotting maps "+sequence_name)

@@ -13,7 +13,7 @@ import os
 max_time = 100
 
 
-def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None, raw=True, verbose=False, debug=False, loglevel=0):
+def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None, raw=True, registered=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -28,7 +28,7 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
-        for filename in sequence_filenames:
+        for i_f,filename in enumerate(sequence_filenames):
 
             if signal_names is None:
                 data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
@@ -41,11 +41,15 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
 
                 start_time = current_time()
                 logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+signal_name)
-                raw_signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+"_raw.inr.gz"
-                if not raw or not os.path.exists(raw_signal_image_file):
-                    signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+".inr.gz"
+
+                if registered and i_f>0:
+                    signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_to_"+sequence_filenames[0][-3:]+"_"+signal_name+".inr.gz"
                 else:
-                    signal_image_file = raw_signal_image_file
+                    raw_signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+"_raw.inr.gz"
+                    if not raw or not os.path.exists(raw_signal_image_file):
+                        signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+".inr.gz"
+                    else:
+                        signal_image_file = raw_signal_image_file
                 if os.path.exists(signal_image_file):
                     img = imread(signal_image_file)
                     if not signal_name in signal_images:
@@ -62,7 +66,7 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
     return signal_images
 
 
-def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='PI', verbose=False, debug=False, loglevel=0):
+def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='PI', registered=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -77,10 +81,14 @@ def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence segmented images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
-        for filename in sequence_filenames:
+        for i_f, filename in enumerate(sequence_filenames):
             start_time = current_time()
             logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+membrane_name+" segmented")
-            segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+membrane_name+"_seg.inr.gz"
+            if registered and i_f>0:
+                segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_to_"+sequence_filenames[0][-3:]+"_"+membrane_name+"_seg.inr.gz"
+            else:
+                segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+membrane_name+"_seg.inr.gz"
+
             if os.path.exists(segmented_image_file):
                 img = imread(segmented_image_file)
                 segmented_images[filename] = img
