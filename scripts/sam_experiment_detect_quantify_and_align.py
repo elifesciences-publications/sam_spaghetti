@@ -3,7 +3,8 @@ import pandas as pd
 
 import sam_spaghetti
 from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
-from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation
+from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, \
+    get_experiment_microscope_orientation
 from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.segmentation_quantification import segment_and_quantify
@@ -160,6 +161,8 @@ def main():
                         logging.debug("--> Loaded sequence "+str(sequence_name)+"!")
 
         for exp in experiments:
+            reference_name = get_experiment_reference(exp, data_dirname)
+            microscope_orientation = get_experiment_microscope_orientation(exp, data_dirname)
             for sequence_name in sequence_names[exp]:
                 if 'sequence_raw' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
@@ -175,21 +178,23 @@ def main():
                     # signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     signal_image_slices = load_sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     if len(signal_image_slices)==0:
-                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=None, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                        signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, reference_name=reference_name, microscope_orientation=microscope_orientation, projection_type=args.projection_type, resolution=None, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_plot(signal_image_slices, reference_name=reference_name, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
 
         for exp in experiments:
+            reference_name = get_experiment_reference(exp, data_dirname)
+            microscope_orientation = get_experiment_microscope_orientation(exp, data_dirname)
             for sequence_name in sequence_names[exp]:
                 if args.registration:
                     logging.info("--> Sequence image registration "+sequence_name)
                     reference_name = get_experiment_reference(exp, data_dirname)
-                    # register_sequence_images(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    apply_sequence_registration(sequence_name, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    # register_sequence_images(sequence_name, microscope_orientation=microscope_orientation, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    apply_sequence_registration(sequence_name, microscope_orientation=microscope_orientation, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
 
                 if 'sequence_registered' in args.image_plot:
-                    signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, projection_type=args.projection_type, resolution=None, registered=True, aligned=False, save_files=False, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure = signal_image_plot(signal_image_slices, projection_type=args.projection_type, resolution=None, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, reference_name=reference_name, microscope_orientation=microscope_orientation, projection_type=args.projection_type, resolution=None, registered=True, aligned=False, save_files=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_image_plot(signal_image_slices, reference_name=reference_name, projection_type=args.projection_type, resolution=None, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_registered_signals.png")
 
         if args.data_compilation:

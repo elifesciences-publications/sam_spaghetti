@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 # import matplotlib as mpl
 from matplotlib.colors import Normalize
 # import matplotlib.patheffects as patheffect
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
 from vplants.tissue_nukem_3d.signal_map import plot_signal_map
@@ -121,7 +122,9 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
         for s1 in signal_names:
             if s1 != reference_name and not "_seg" in s1:
                 signal_display_list += [[s1,s2] for s2 in signal_names if (s2 < s1) and (s2 != reference_name and not "_seg" in s2)]
-        signal_display_list += [[s for s in signal_names if (s != reference_name and not "_seg" in s)]]
+        all_signal_list = [s for s in signal_names if (s != reference_name and not "_seg" in s)]
+        if len(all_signal_list)>2:
+            signal_display_list += [all_signal_list]
         signal_display_list += [[s] for s in signal_names if "_seg" in s]
 
         if figure is None:
@@ -137,7 +140,7 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
 
                 figure.add_subplot(len(signal_display_list),len(filenames),i_signal*len(filenames)+i_time+1)
 
-                plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name='TagBFP')
+                plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name=reference_name)
 
                 if i_signal == 0:
                     figure.gca().set_title("t="+str(time)+"h",size=28)
@@ -225,7 +228,7 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
 
                 figure.add_subplot(len(signal_display_list), len(filenames), i_signal * len(filenames) + i_time + 1)
 
-                plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name='TagBFP')
+                plot_image_view_blend(image_views, filename, signals_to_display, figure, extent, reference_name=reference_name)
 
                 if i_signal == 0:
                     figure.gca().set_title("t=" + str(time) + "h", size=28)
@@ -297,7 +300,6 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
                         else:
                             norm = Normalize(vmin=signal_ranges[signal_name][0], vmax=signal_ranges[signal_name][1])
                         image_views[signal_name][(str(primordium),filename)] = cm.ScalarMappable(cmap=signal_colormaps[signal_name], norm=norm).to_rgba(image_primordia_slices[signal_name][primordium][filename])
-
 
         signal_display_list = []
         signal_display_list += [[s] for s in signal_names]
@@ -417,9 +419,10 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
                 figure.gca().axis('equal')
 
                 if i_time == len(filenames)-1:
-                    figure.colorbar(col, ax=figure.gca(), orientation='vertical', shrink=0.98, pad=0.)
-
-
+                    cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                    cbar = figure.colorbar(col, cax=cax, pad=0.)
+                    cax.yaxis.set_ticks_position('left')
+                    cbar.set_clim(*signal_lut_ranges[signal_name])
 
         figure.set_size_inches(10*len(filenames),10*(len(signal_names)))
         # figure.set_size_inches(5*len(filenames),5)
@@ -493,7 +496,11 @@ def signal_nuclei_all_primordia_plot(primordia_signal_data, figure=None, signal_
                     figure.gca().axis('equal')
 
                     if i_time == len(filenames) - 1:
-                        figure.colorbar(col, ax=figure.gca(), orientation='vertical', shrink=0.98, pad=0.)
+                        cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                        cbar = figure.colorbar(col, cax=cax, pad=0.)
+                        cax.yaxis.set_ticks_position('left')
+                        cbar.set_clim(*signal_lut_ranges[signal_name])
+
 
         figure.set_size_inches(10*len(file_primordia),6*len(signal_names))
         figure.tight_layout()
@@ -550,7 +557,9 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
                 figure.gca().axis('on')
 
                 if i_time == len(filenames)-1:
-                    cbar = figure.colorbar(col, ax=figure.gca(), orientation='vertical', shrink=0.98, pad=0.)
+                    cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                    cbar = figure.colorbar(col, cax=cax, pad=0.)
+                    cax.yaxis.set_ticks_position('left')
                     cbar.set_clim(*signal_lut_ranges[signal_name])
 
 
@@ -617,7 +626,10 @@ def signal_map_all_primordia_plot(primordia_signal_maps, figure=None, signal_nam
                 figure.gca().axis('on')
 
                 if i_time == len(filenames)-1:
-                    figure.colorbar(col, ax=figure.gca(), orientation='vertical', shrink=0.98, pad=0., boundaries=signal_lut_ranges[signal_name])
+                    cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                    cbar = figure.colorbar(col, cax=cax, pad=0.)
+                    cax.yaxis.set_ticks_position('left')
+                    cbar.set_clim(*signal_lut_ranges[signal_name])
 
         figure.set_size_inches(10*len(file_primordia),6*len(signal_names))
         figure.tight_layout()

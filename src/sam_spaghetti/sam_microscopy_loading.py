@@ -45,6 +45,8 @@ def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature
     else:
         img_dict = None
         logging.error("".join(["  " for l in xrange(loglevel)]) + "--> Could not read image format! " + str(os.path.splitext(microscopy_file)[1]) + " not supported!")
+    if not isinstance(img_dict, dict): # Single channel images might be returned as SpatialImage
+        img_dict = {channel_names[0]: img_dict}
     logging.info("".join(["  " for l in xrange(loglevel)]) + "<-- Loading microscopy image [" + str(current_time() - start_time) + " s]")
 
     if nomenclature_name is None:

@@ -111,15 +111,20 @@ def apply_sequence_registration(sequence_name, save_files=True, image_dirname=No
                 imsave(registered_image_file, SpatialImage(registered_signal_img , voxelsize=registered_signal_img .voxelsize))
 
     sequence_data = load_sequence_signal_data(sequence_name,image_dirname, normalized=True, aligned=False, verbose=verbose, debug=debug, loglevel=loglevel+1)
+    if len(sequence_data)==0:
+        sequence_data = load_sequence_signal_data(sequence_name, image_dirname, nuclei=False, aligned=False, verbose=verbose, debug=debug, loglevel=loglevel + 1)
+        nuclei = False
+    else:
+        nuclei = True
     apply_sequence_point_registration(sequence_data,sequence_rigid_transforms, verbose=verbose, debug=debug, loglevel=loglevel+1)
 
     if save_files:
         for i_f, filename in enumerate(filenames):
             file_data = sequence_data[filename]
             if "Normalized_"+reference_name in file_data.columns:
-                data_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_normalized_signal_data.csv"
+                data_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_normalized_"+("signal" if nuclei else "cell")+"_data.csv"
             else:
-                data_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_signal_data.csv"
+                data_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_"+("signal" if nuclei else "cell")+"_data.csv"
             file_data.to_csv(data_filename)
 
     return registered_images

@@ -35,6 +35,16 @@ def get_experiment_reference(exp, dirname=sam_spaghetti_dirname):
     reference = experiment_references.get(exp)
     return reference if reference != "" else None
 
+def get_experiment_microscope_orientation(exp, dirname=sam_spaghetti_dirname):
+    experiment_file = dirname+"/experiment_info.csv"
+    experiment_data = pd.read_csv(experiment_file,sep=';')
+    experiment_data = experiment_data.replace(np.nan,"")
+    micoscope_orientation = ""
+    if 'microscope_orientation' in experiment_data.columns:
+        experiment_micoscope_orientations = dict(zip(experiment_data['experiment'],experiment_data['microscope_orientation']))
+        micoscope_orientation = experiment_micoscope_orientations.get(exp)
+    return micoscope_orientation if micoscope_orientation != "" else -1
+
 def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
     czi_filename = os.path.split(czi_file)[1]
     nomenclature_file = dirname+"/nomenclature.csv"

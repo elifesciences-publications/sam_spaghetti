@@ -32,7 +32,11 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
 
             if signal_names is None:
                 data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
-                file_df = pd.read_csv(data_filename)
+                if os.path.exists(data_filename):
+                    file_df = pd.read_csv(data_filename)
+                else:
+                    data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_cell_data.csv"
+                    file_df = pd.read_csv(data_filename)
                 file_signals = [c for c in file_df.columns if (not "center" in c) and (not "layer" in c) and (not 'curvature' in c) and (not 'Unnamed' in c) and (not 'label' in c)]
             else:
                 file_signals = [c for c in signal_names if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+c+".inr.gz")]
@@ -139,7 +143,7 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
     return signal_image_slices
 
 
-def load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=False, debug=False, loglevel=0):
+def load_sequence_signal_data(sequence_name, image_dirname, nuclei=True, normalized=False, aligned=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
@@ -148,41 +152,18 @@ def load_sequence_signal_data(sequence_name, image_dirname, normalized=False, al
     sequence_filenames = []
     for time in xrange(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
-        data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
+        data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_","signal" if nuclei else "cell","_data.csv"])
         if os.path.exists(data_filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
         for filename in sequence_filenames:
-            data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
+            data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_","signal" if nuclei else "cell","_data.csv"])
             df = pd.read_csv(data_filename)
             signal_data[filename] = df
 
     return signal_data
-
-
-def load_sequence_cell_data(sequence_name, image_dirname, verbose=False, debug=False, loglevel=0):
-
-    logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
-
-    cell_data = {}
-
-    sequence_filenames = []
-    for time in xrange(max_time):
-        filename = sequence_name+"_t"+str(time).zfill(2)
-        data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_cell_data.csv"])
-        if os.path.exists(data_filename):
-            sequence_filenames += [filename]
-
-    if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
-        for filename in sequence_filenames:
-            data_filename = "".join([image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_cell_data.csv"])
-            df = pd.read_csv(data_filename)
-            cell_data[filename] = df
-
-    return cell_data
 
 
 def load_sequence_primordia_data(sequence_name, image_dirname, verbose=False, debug=False, loglevel=0):
@@ -218,6 +199,8 @@ def load_sequence_rigid_transformations(sequence_name, image_dirname, verbose=Fa
     for time in xrange(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
+            sequence_filenames += [filename]
+        elif os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_cell_data.csv"):
             sequence_filenames += [filename]
 
     for i_file,(reference_filename,floating_filename) in enumerate(zip(sequence_filenames[:-1],sequence_filenames[1:])):
