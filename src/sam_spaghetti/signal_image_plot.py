@@ -5,12 +5,13 @@ import scipy.ndimage as nd
 import matplotlib.pyplot as plt
 # import matplotlib.patches as patch
 # import matplotlib as mpl
+from matplotlib import cm
 from matplotlib.colors import Normalize
 # import matplotlib.patheffects as patheffect
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
-from vplants.tissue_nukem_3d.signal_map import plot_signal_map
+from vplants.tissue_nukem_3d.signal_map_visualization import plot_signal_map, plot_tensor_data
 
 import sam_spaghetti.utils.signal_luts
 reload(sam_spaghetti.utils.signal_luts)
@@ -364,8 +365,13 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
                 signal_names = [c for c in signal_data[filenames[0]].columns if c in quantified_signals and (not 'Normalized' in c)]
             # signal_names.remove(reference_name)
 
+        vector_names = [c for c in signal_names if c in vector_signals]
+        tensor_names = [c for c in signal_names if c in tensor_signals]
+
         signal_names = [c for c in signal_names if c in signal_colormaps]
         signal_names = [c for c in signal_names if c in signal_lut_ranges]
+
+        signal_names += tensor_names
 
         if figure is None:
             figure = plt.figure(0)
@@ -400,13 +406,17 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
             # xx,yy = np.meshgrid(np.linspace(0,((size-1)*voxelsize)[0],((size-1)*np.abs(voxelsize))[0]/resolution+1),np.linspace(0,((size-1)*voxelsize)[1],((size-1)*np.abs(voxelsize))[0]/resolution+1))
             # extent = xx.max(),xx.min(),yy.min(),yy.max()
 
-
             for i_signal, signal_name in enumerate(signal_names):
 
                 figure.add_subplot(len(signal_names), len(filenames),i_signal*len(filenames)+i_time+1)
 
-                # logging.info("".join(["  " for l in xrange(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
-                col = figure.gca().scatter(X,Y,c=file_data[signal_name].values,s=markersize,linewidth=0,alpha=alpha,cmap=signal_colormaps[signal_name],vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
+                if signal_name in tensor_names:
+                    plot_tensor_data(figure,X,Y,file_data[signal_name].values, np.ones_like(X), tensor_style='crosshair',colormap='gray',value_range=(0,0),scale=10.)
+                    plot_tensor_data(figure,X,Y,file_data[signal_name].values, np.ones_like(X), tensor_style='ellipse',colormap='gray',value_range=(0,0),scale=10.,alpha=0.2)
+                    col = None
+                else:
+                    # logging.info("".join(["  " for l in xrange(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
+                    col = figure.gca().scatter(X,Y,c=file_data[signal_name].values,s=markersize,linewidth=0,alpha=alpha,cmap=signal_colormaps[signal_name],vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
 
                 if i_signal == 0:
                     figure.gca().set_title("t="+str(time)+"h",size=28)
@@ -419,10 +429,11 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
                 figure.gca().axis('equal')
 
                 if i_time == len(filenames)-1:
-                    cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
-                    cbar = figure.colorbar(col, cax=cax, pad=0.)
-                    cax.yaxis.set_ticks_position('left')
-                    cbar.set_clim(*signal_lut_ranges[signal_name])
+                    if col is not None:
+                        cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                        cbar = figure.colorbar(col, cax=cax, pad=0.)
+                        cax.yaxis.set_ticks_position('left')
+                        cbar.set_clim(*signal_lut_ranges[signal_name])
 
         figure.set_size_inches(10*len(filenames),10*(len(signal_names)))
         # figure.set_size_inches(5*len(filenames),5)

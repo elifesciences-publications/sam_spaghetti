@@ -13,7 +13,7 @@ from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plo
 from sam_spaghetti.signal_map_computation import compute_signal_maps, compute_primordia_signal_maps, compute_average_signal_maps, compute_average_primordia_signal_maps
 from sam_spaghetti.sequence_image_registration import register_sequence_images, apply_sequence_registration
 from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_primordia_data
-from sam_spaghetti.sequence_growth_estimation import compute_surfacic_growth
+from sam_spaghetti.sequence_growth_estimation import compute_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
 from vplants.tissue_nukem_3d.signal_map import save_signal_map
@@ -59,7 +59,8 @@ def main():
     parser.add_argument('-m', '--map-plot', default=[], nargs='+', help='List of signal map types to plot',choices=plot_choices)
     parser.add_argument('-N', '--normalized', default=False, action='store_true', help='Display normalized signals when plotting')
     parser.add_argument('-pol', '--polar', default=False, action='store_true', help='Compute maps using polar coordinates')
-    parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate surfacic growth on all experiments')
+    parser.add_argument('-G', '--growth-estimation', default=False, action='store_true', help='Estimate tissue-scale growth on all experiments')
+    parser.add_argument('-g', '--growth-type', default='surfacic', help='Whether to estimate surfacic or volumetric growth information',choices=['surfacic','volumetric'])
     parser.add_argument('-P', '--primordia-alignment', default=False, action='store_true', help='Align sequences of all experiments based on the detection of CZ and P0')
     parser.add_argument('-C', '--data-compilation', default=False, action='store_true', help='Compile all the data from the experiments into .csv files in the data directory')
     
@@ -189,7 +190,7 @@ def main():
                 if args.registration:
                     logging.info("--> Sequence image registration "+sequence_name)
                     reference_name = get_experiment_reference(exp, data_dirname)
-                    # register_sequence_images(sequence_name, microscope_orientation=microscope_orientation, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    register_sequence_images(sequence_name, microscope_orientation=microscope_orientation, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
                     apply_sequence_registration(sequence_name, microscope_orientation=microscope_orientation, save_files=True, image_dirname=image_dirname, reference_name=reference_name, verbose=args.verbose, debug=args.debug, loglevel=1)
 
                 if 'sequence_registered' in args.image_plot:
@@ -202,15 +203,21 @@ def main():
             compile_signal_data(experiments,save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
                             
         for exp in experiments:
+            microscope_orientation = get_experiment_microscope_orientation(exp, data_dirname)
             for sequence_name in sequence_names[exp]:
                 if args.growth_estimation:
-                    logging.info("--> Computing sequence surfacic growth "+sequence_name)
-                    compute_surfacic_growth(sequence_name, image_dirname, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    logging.info("--> Computing sequence "+args.growth_type+" growth "+sequence_name)
+                    compute_growth(sequence_name, image_dirname, save_files=True, growth_type=args.growth_type, microscope_orientation=microscope_orientation, verbose=args.verbose, debug=args.debug, loglevel=1)
 
-                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  
+                    signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    signal_images = load_sequence_signal_images(sequence_name, image_dirname, signal_names=[reference_name], verbose=args.verbose, debug=args.debug, loglevel=1)
+                    r_max = signal_images[reference_name].values()[0].shape[0] * signal_images[reference_name].values()[0].voxelsize[0] / 2.
                     logging.info("--> Plotting nuclei growth "+sequence_name)
-                    figure = signal_nuclei_plot(signal_normalized_data, normalized=args.normalized, signal_names=['next_relative_surfacic_growth','previous_relative_surfacic_growth'], registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
-                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_growth.png")  
+                    signals_to_plot = [direction+'_'+("relative_" if args.growth_type=='surfacic' else "")+args.growth_type+'_growth' for direction in ['next','previous']]
+                    if args.growth_type=='volumetric':
+                        signals_to_plot += [direction+"_stretch_tensor" for direction in ['next','previous']]
+                    figure = signal_nuclei_plot(signal_normalized_data, r_max=r_max, microscope_orientation=microscope_orientation, normalized=args.normalized, signal_names=signals_to_plot, registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_"+args.growth_type+"_growth.png")
 
                 if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  

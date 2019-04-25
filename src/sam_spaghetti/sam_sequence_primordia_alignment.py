@@ -8,7 +8,8 @@ import matplotlib.patheffects as path_effects
 import matplotlib as mpl
 
 from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
-from vplants.tissue_nukem_3d.signal_map import SignalMap, plot_signal_map
+from vplants.tissue_nukem_3d.signal_map import SignalMap
+from vplants.tissue_nukem_3d.signal_map_visualization import plot_signal_map
 from vplants.tissue_nukem_3d.signal_map_analysis import compute_signal_map_landscape, signal_map_landscape_analysis, signal_map_regions
 
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_data, load_sequence_rigid_transformations

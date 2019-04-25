@@ -1,14 +1,17 @@
+import logging
+import os
+import re
+
 import pandas as pd
 import numpy as np
 
 from time import time as current_time
 
 from scipy.misc import imread as imread2d
-# from vplants.image.serial.all import imread
+from vplants.image.serial.all import imread as legacy_imread
 from timagetk.io import imread
 
-import logging
-import os
+from sam_spaghetti.utils.signal_luts import vector_signals, tensor_signals
 
 max_time = 100
 
@@ -143,6 +146,16 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
     return signal_image_slices
 
 
+def array_from_printed_string(string):
+    if not pd.isnull(string):
+        s = re.sub("[ ]+", " ", string)
+        s = re.sub("\[ ", "[", s)
+        s = re.sub("\n", "", s)
+        s = re.sub(" ", ",", s)
+        return np.array(eval(s))
+    else:
+        return string
+
 def load_sequence_signal_data(sequence_name, image_dirname, nuclei=True, normalized=False, aligned=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
@@ -161,6 +174,11 @@ def load_sequence_signal_data(sequence_name, image_dirname, nuclei=True, normali
         for filename in sequence_filenames:
             data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_","signal" if nuclei else "cell","_data.csv"])
             df = pd.read_csv(data_filename)
+
+            for column in vector_signals+tensor_signals:
+                if column in df.columns:
+                    df[column] = map(array_from_printed_string, df[column].values)
+
             signal_data[filename] = df
 
     return signal_data
@@ -225,18 +243,20 @@ def load_sequence_vectorfield_transformations(sequence_name, image_dirname, verb
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
             sequence_filenames += [filename]
+        elif os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_cell_data.csv"):
+            sequence_filenames += [filename]
 
     for i_file,(reference_filename,floating_filename) in enumerate(zip(sequence_filenames[:-1],sequence_filenames[1:])):
         start_time = current_time()
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" <-- "+floating_filename)
         vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
-        vectorfield_transformations[(floating_filename,reference_filename)] = imread(vector_field_file)
+        vectorfield_transformations[(floating_filename,reference_filename)] = legacy_imread(vector_field_file)
         logging.info("".join(["  " for l in xrange(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" <-- "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
         start_time = current_time()
         logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" --> "+floating_filename)
         invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
-        vectorfield_transformations[(reference_filename,floating_filename)] = imread(invert_vector_field_file)
+        vectorfield_transformations[(reference_filename,floating_filename)] = legacy_imread(invert_vector_field_file)
         logging.info("".join(["  " for l in xrange(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" --> "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
     return vectorfield_transformations

@@ -100,6 +100,18 @@ quantified_signals += ['gaussian_curvature']
 quantified_signals += ['mean_curvature']
 quantified_signals += ['next_relative_surfacic_growth']
 quantified_signals += ['previous_relative_surfacic_growth']
+quantified_signals += ['next_volumetric_growth']
+quantified_signals += ['previous_volulmetric_growth']
+
+vector_signals = []
+vector_signals += ['next_main_growth_direction']
+vector_signals += ['previous_main_growth_direction']
+
+tensor_signals = []
+tensor_signals += ['next_strain_tensor']
+tensor_signals += ['next_stretch_tensor']
+tensor_signals += ['previous_strain_tensor']
+tensor_signals += ['previous_stretch_tensor']
 
 signal_ranges= {}
 for s in quantified_signals:
@@ -131,6 +143,8 @@ signal_ranges['surface_distance'] = (0,100)
 signal_ranges['sam_id'] = (0,30)
 signal_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
 signal_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
+signal_ranges['next_volumetric_growth'] = (0.9,1.3)
+signal_ranges['previous_volumetric_growth'] = (0.9,1.3)
 
 
 channel_ranges= {}
@@ -175,6 +189,8 @@ signal_lut_ranges['surface_distance'] = (0,100)
 signal_lut_ranges['sam_id'] = (0,30)
 signal_lut_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
 signal_lut_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
+signal_lut_ranges['next_volumetric_growth'] = (0.9,1.3)
+signal_lut_ranges['previous_volumetric_growth'] = (0.9,1.3)
 
 
 signal_colormaps = {}
@@ -215,6 +231,8 @@ signal_colormaps['surface_distance'] = 'geo_jet'
 signal_colormaps['sam_id'] = 'Blues'
 signal_colormaps['next_relative_surfacic_growth'] = 'jet'
 signal_colormaps['previous_relative_surfacic_growth'] = 'jet'
+signal_colormaps['next_volumetric_growth'] = 'jet'
+signal_colormaps['previous_volumetric_growth'] = 'jet'
 
 
 
