@@ -544,8 +544,14 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
 
         if signal_names is None:
             signal_names = signal_maps.values()[0].signal_names()
+        vector_names = [c for c in signal_names if c in vector_signals]
+        tensor_names = [c for c in signal_names if c in tensor_signals]
+
         signal_names = [c for c in signal_names if c in signal_colormaps]
         signal_names = [c for c in signal_names if c in signal_lut_ranges]
+
+        signal_names += tensor_names
+
 
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
             logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Plotting signal maps for " + filename)
@@ -555,7 +561,11 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
 
                 figure.add_subplot(len(signal_names),len(filenames),i_signal*len(filenames)+i_time+1)
 
-                col = plot_signal_map(signal_map, signal_name, figure, distance_rings=aligned, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
+                if signal_name in tensor_names:
+                    plot_signal_map(signal_map, signal_name, figure, distance_rings=aligned, colormap='gray', signal_range=(0,0), signal_lut_range=(0,0))
+                    col = None
+                else:
+                    col = plot_signal_map(signal_map, signal_name, figure, distance_rings=aligned, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
 
                 if i_signal == 0:
                     figure.gca().set_title("t="+str(time)+"h",size=28)
@@ -568,10 +578,11 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
                 figure.gca().axis('on')
 
                 if i_time == len(filenames)-1:
-                    cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
-                    cbar = figure.colorbar(col, cax=cax, pad=0.)
-                    cax.yaxis.set_ticks_position('left')
-                    cbar.set_clim(*signal_lut_ranges[signal_name])
+                    if col is not None:
+                        cax = inset_axes(figure.gca(),width="3%", height="25%", loc='lower right')
+                        cbar = figure.colorbar(col, cax=cax, pad=0.)
+                        cax.yaxis.set_ticks_position('left')
+                        cbar.set_clim(*signal_lut_ranges[signal_name])
 
 
         figure.set_size_inches(10*len(filenames),10*(len(signal_names)))
@@ -584,8 +595,8 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
                 figure.add_subplot(len(signal_names), len(filenames), i_signal * len(filenames) + i_time + 1)
 
                 if not aligned:
-                    figure.gca().set_xlim(0, -2 * r_max)
-                    figure.gca().set_ylim(0, -2 * r_max)
+                    figure.gca().set_xlim(0, microscope_orientation*2 * r_max)
+                    figure.gca().set_ylim(0, microscope_orientation*2 * r_max)
 
     return figure
 

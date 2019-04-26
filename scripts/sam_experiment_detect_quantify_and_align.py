@@ -215,9 +215,15 @@ def main():
                     logging.info("--> Plotting nuclei growth "+sequence_name)
                     signals_to_plot = [direction+'_'+("relative_" if args.growth_type=='surfacic' else "")+args.growth_type+'_growth' for direction in ['next','previous']]
                     if args.growth_type=='volumetric':
+                        signals_to_plot += [direction+'_'+args.growth_type+'_growth_anisotropy' for direction in ['next','previous']]
                         signals_to_plot += [direction+"_stretch_tensor" for direction in ['next','previous']]
                     figure = signal_nuclei_plot(signal_normalized_data, r_max=r_max, microscope_orientation=microscope_orientation, normalized=args.normalized, signal_names=signals_to_plot, registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_nuclei_"+args.growth_type+"_growth.png")
+
+                    logging.info("--> Plotting growth maps " + sequence_name)
+                    signal_maps = compute_signal_maps(signal_normalized_data, signal_names=signals_to_plot, r_max=r_max, microscope_orientation=microscope_orientation, normalized=args.normalized, polar=args.polar, registered=True, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure = signal_map_plot(signal_maps, signal_names=signals_to_plot, r_max=r_max, microscope_orientation=microscope_orientation, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_registered_"+args.growth_type+"_growth_maps.png")
 
                 if 'sequence_raw' in args.map_plot:
                     signal_normalized_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)  

@@ -39,14 +39,15 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
                 center = np.array([0, 0])
             elif registered:
                 position_name = 'registered'
-                center = np.array([-r_max, -r_max])
+                center = np.array([ microscope_orientation*r_max,  microscope_orientation*r_max])
             else:
                 position_name = 'center'
-                center = np.array([-r_max, -r_max])
+                center = np.array([microscope_orientation*r_max,  microscope_orientation*r_max])
 
             signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=polar, radius=cell_radius, density_k=density_k)
             for signal_name in signal_names:
                 signal_map.compute_signal_map(signal_name)
+                logging.info("  ".join(["  " for l in xrange(loglevel)]) + "--> Computing "+signal_name+" map for " + filename)
 
             signal_maps[filename] = signal_map
 

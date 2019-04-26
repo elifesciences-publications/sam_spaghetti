@@ -5,6 +5,7 @@ import pandas as pd
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data, load_sequence_rigid_transformations, load_sequence_vectorfield_transformations
 from sam_spaghetti.utils.signal_luts import quantified_signals
 
+from vplants.cellcomplex.property_topomesh.property_topomesh_io import save_ply_property_topomesh
 from vplants.tissue_nukem_3d.growth_estimation import surfacic_growth_estimation, volumetric_growth_estimation
 
 from copy import deepcopy
@@ -26,7 +27,7 @@ def compute_growth(sequence_name, image_dirname, save_files=True, maximal_length
     if growth_type == 'surfacic':
         sequence_data = surfacic_growth_estimation(sequence_data,sequence_rigid_transforms,sequence_vectorfield_transforms,maximal_length=maximal_length,microscope_orientation=microscope_orientation,quantified_signals=quantified_signals, verbose=verbose, debug=debug, loglevel=loglevel)
     elif growth_type == 'volumetric':
-        sequence_data = volumetric_growth_estimation(sequence_data,sequence_rigid_transforms,sequence_vectorfield_transforms,maximal_length=maximal_length,microscope_orientation=microscope_orientation,quantified_signals=quantified_signals, verbose=verbose, debug=debug, loglevel=loglevel)
+        sequence_data, sequence_triangulations = volumetric_growth_estimation(sequence_data,sequence_rigid_transforms,sequence_vectorfield_transforms,maximal_length=maximal_length,microscope_orientation=microscope_orientation,quantified_signals=quantified_signals, verbose=verbose, debug=debug, loglevel=loglevel)
 
     if save_files:
         for filename in sequence_data:
@@ -34,5 +35,14 @@ def compute_growth(sequence_name, image_dirname, save_files=True, maximal_length
             aligned=False
             data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_signal_data.csv"])
             sequence_data[filename].to_csv(data_filename,index=False)
+            if growth_type == 'volumetric':
+                triangulation_filename = "".join([image_dirname + "/" + sequence_name + "/" + filename + "/" + filename, "_registered_tetrahedrization.ply"])
+                properties_to_save = {d:[] for d in range(4)}
+                properties_to_save[0] += ['layer']
+                for direction in ['previous','next']:
+                    for prop in ['strain_tensor','stretch_tensor','volumetric_growth','volumetric_growth_anisotropy','main_growth_direction']:
+                        properties_to_save[0] += [direction + "_"+ prop]
+                        properties_to_save[3] += [direction + "_"+ prop]
+                save_ply_property_topomesh(sequence_triangulations[filename],triangulation_filename,properties_to_save=properties_to_save)
 
     return sequence_data

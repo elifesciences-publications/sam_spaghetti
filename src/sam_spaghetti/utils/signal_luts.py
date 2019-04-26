@@ -102,6 +102,8 @@ quantified_signals += ['next_relative_surfacic_growth']
 quantified_signals += ['previous_relative_surfacic_growth']
 quantified_signals += ['next_volumetric_growth']
 quantified_signals += ['previous_volulmetric_growth']
+quantified_signals += ['next_volumetric_growth_anisotropy']
+quantified_signals += ['previous_volulmetric_growth_anisotropy']
 
 vector_signals = []
 vector_signals += ['next_main_growth_direction']
@@ -143,8 +145,10 @@ signal_ranges['surface_distance'] = (0,100)
 signal_ranges['sam_id'] = (0,30)
 signal_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
 signal_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
-signal_ranges['next_volumetric_growth'] = (0.9,1.3)
-signal_ranges['previous_volumetric_growth'] = (0.9,1.3)
+signal_ranges['next_volumetric_growth'] = (0.9,1.5)
+signal_ranges['previous_volumetric_growth'] = (0.9,1.5)
+signal_ranges['next_volumetric_growth_anisotropy'] = (0.,1.)
+signal_ranges['previous_volumetric_growth_anisotropy'] = (0.,1.)
 
 
 channel_ranges= {}
@@ -189,8 +193,10 @@ signal_lut_ranges['surface_distance'] = (0,100)
 signal_lut_ranges['sam_id'] = (0,30)
 signal_lut_ranges['next_relative_surfacic_growth'] = (0.9,1.3)
 signal_lut_ranges['previous_relative_surfacic_growth'] = (0.9,1.3)
-signal_lut_ranges['next_volumetric_growth'] = (0.9,1.3)
-signal_lut_ranges['previous_volumetric_growth'] = (0.9,1.3)
+signal_lut_ranges['next_volumetric_growth'] = (0.9,1.5)
+signal_lut_ranges['previous_volumetric_growth'] = (0.9,1.5)
+signal_lut_ranges['next_volumetric_growth_anisotropy'] = (0.,0.6)
+signal_lut_ranges['previous_volumetric_growth_anisotropy'] = (0.,0.6)
 
 
 signal_colormaps = {}
@@ -233,6 +239,8 @@ signal_colormaps['next_relative_surfacic_growth'] = 'jet'
 signal_colormaps['previous_relative_surfacic_growth'] = 'jet'
 signal_colormaps['next_volumetric_growth'] = 'jet'
 signal_colormaps['previous_volumetric_growth'] = 'jet'
+signal_colormaps['next_volumetric_growth_anisotropy'] = 'YlOrRd'
+signal_colormaps['previous_volumetric_growth_anisotropy'] = 'YlOrRd'
 
 
 
