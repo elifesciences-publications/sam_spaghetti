@@ -108,6 +108,8 @@ quantified_signals += ['previous_volulmetric_growth_anisotropy']
 vector_signals = []
 vector_signals += ['next_main_growth_direction']
 vector_signals += ['previous_main_growth_direction']
+vector_signals += ['PIN1_polarity_vector']
+vector_signals += ['PI_polarity_vector']
 
 tensor_signals = []
 tensor_signals += ['next_strain_tensor']
@@ -242,8 +244,6 @@ signal_colormaps['previous_volumetric_growth'] = 'jet'
 signal_colormaps['next_volumetric_growth_anisotropy'] = 'YlOrRd'
 signal_colormaps['previous_volumetric_growth_anisotropy'] = 'YlOrRd'
 
-
-
 channel_colormaps = {}
 channel_colormaps['CLV3'] = 'Purples'
 channel_colormaps['DIIV'] = 'Greens'
@@ -272,3 +272,6 @@ contour_colormaps['DR5'] = '1Flashy_orange'
 contour_colormaps['gaussian_curvature'] = 'winter'
 contour_colormaps['next_relative_surfacic_growth'] = 'viridis'
 
+vector_signal_colors = {}
+vector_signal_colors['PIN1_polarity_vector'] = 'forestgreen'
+vector_signal_colors['PI_polarity_vector'] = 'grey'

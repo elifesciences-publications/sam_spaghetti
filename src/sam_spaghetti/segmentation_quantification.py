@@ -165,7 +165,7 @@ def membrane_image_segmentation(img2seg, h_min, img2sub=None, iso=False, equaliz
     print "\n - Automatic seed detection...".format(h_min)
     # morpho_radius = 1.0
     # asf_img = morphology(img2seg, max_radius=morpho_radius, method='co_alternate_sequential_filter')
-    # ext_img = h_transform(asf_img, h=h_min, method='h_transform_min')
+    # ext_img = h_transform(asf_img, h=h_min, method='min')
 
     voxelsize = np.array(ori_vxs)
     print " -- Gaussian smoothing with sigma={}...".format(std_dev / voxelsize)
@@ -179,9 +179,9 @@ def membrane_image_segmentation(img2seg, h_min, img2sub=None, iso=False, equaliz
 
     print " -- H-minima transform with h-min={}...".format(h_min)
     if to_8bits:
-        ext_img = h_transform(smooth_img.to_8bits(), h=h_min, method='h_transform_min')
+        ext_img = h_transform(smooth_img.to_8bits(), h=h_min, method='min')
     else:
-        ext_img = h_transform(smooth_img, h=h_min, method='h_transform_min')
+        ext_img = h_transform(smooth_img, h=h_min, method='min')
     if iso:
         smooth_img = iso_smooth_img  # no need to keep both images after this step!
 
@@ -270,7 +270,9 @@ def segment_and_quantify(img_dict, membrane_name='PI', signal_names=None, save_f
     erosion_radius = 1.
 
     if erosion_radius > 0:
-        eroded_seg_img = labels_post_processing(seg_img, method='labels_erosion', radius=erosion_radius, iterations=1)
+        eroded_seg_img = labels_post_processing(seg_img, method='erosion', radius=erosion_radius, iterations=1)
+    else:
+        eroded_seg_img = seg_img
 
     cell_points = p_img.image_property('barycenter').values()
 
@@ -291,6 +293,8 @@ def segment_and_quantify(img_dict, membrane_name='PI', signal_names=None, save_f
         if ('RGAV' in df.columns)&('TagBFP' in df.columns):
             df['qRGA'] = df['RGAV'].values/df['TagBFP'].values
         df.rename(index=str,columns=dict([('barycenter_'+dim,'center_'+dim) for dim in ['x','y','z']]),inplace=True)
+        for dim in ['x', 'y', 'z']:
+            df['center_'+dim] *= microscope_orientation
         df.to_csv(image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/"+nomenclature_name+"_cell_data.csv",index=False)
 
     results = (df, seg_img,)

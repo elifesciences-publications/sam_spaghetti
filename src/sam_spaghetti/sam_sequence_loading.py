@@ -10,6 +10,7 @@ from time import time as current_time
 from scipy.misc import imread as imread2d
 from vplants.image.serial.all import imread as legacy_imread
 from timagetk.io import imread
+from vplants.cellcomplex.property_topomesh.property_topomesh_io import read_ply_property_topomesh
 
 from sam_spaghetti.utils.signal_luts import vector_signals, tensor_signals
 
@@ -261,3 +262,42 @@ def load_sequence_vectorfield_transformations(sequence_name, image_dirname, verb
 
     return vectorfield_transformations
 
+
+def load_sequence_wall_meshes(sequence_name, image_dirname, loglevel=0):
+    
+    wall_topomeshes = {}
+    
+    sequence_filenames = []
+    for time in xrange(max_time):
+        filename = sequence_name+"_t"+str(time).zfill(2)
+        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_walls.ply"):
+            sequence_filenames += [filename]
+
+    for i_file, filename in enumerate(sequence_filenames):
+        start_time = current_time()
+        logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Loading wall mesh " + filename)
+        wall_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_walls.ply"
+        wall_topomeshes[filename] = read_ply_property_topomesh(wall_filename)
+        logging.info("".join(["  " for l in xrange(loglevel)]) + "<-- Loading wall mesh " + filename + " [" + str(current_time() - start_time) + " s]")
+
+    return wall_topomeshes
+
+def load_sequence_signal_wall_data(sequence_name, image_dirname, loglevel=0):
+
+    wall_data = {}
+
+    sequence_filenames = []
+    for time in xrange(max_time):
+        filename = sequence_name+"_t"+str(time).zfill(2)
+        wall_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_walls.csv"])
+        if os.path.exists(wall_data_filename):
+            sequence_filenames += [filename]
+
+    if len(sequence_filenames)>0:
+        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence wall data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        for filename in sequence_filenames:
+            wall_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_walls.csv"])
+            df = pd.read_csv(wall_data_filename)
+            wall_data[filename] = df
+
+    return wall_data

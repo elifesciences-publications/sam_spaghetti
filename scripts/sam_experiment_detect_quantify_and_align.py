@@ -3,8 +3,7 @@ import pandas as pd
 
 import sam_spaghetti
 from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
-from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, \
-    get_experiment_microscope_orientation
+from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, get_experiment_microscope_orientation
 from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.segmentation_quantification import segment_and_quantify
@@ -72,8 +71,6 @@ def main():
 
     logging.getLogger().setLevel(logging.INFO if args.verbose else logging.DEBUG if args.debug else logging.ERROR)
 
-    # mesh_to_cvt_image(input=args.input, output=args.output, method=args.method, verbose=args.verbose, debug=args.debug,
-    #     save=not(args.no_save), voxelsize=args.voxelsize, nbcells=args.nbcells, max_step=args.step, res=args.resolution)
     data_dirname = args.data_directory
 
     microscopy_dirname = args.microscopy_directory if args.microscopy_directory is not None else data_dirname+"/microscopy"
@@ -280,7 +277,7 @@ def main():
 
                 if np.any([p in args.map_plot for p in ['sequence_primordia', 'experiment_primordia', 'all_primordia']]):
                     primordia_signal_data = sequence_signal_data_primordium_slices(sequence_name, image_dirname, width=5., verbose=args.verbose, debug=args.debug, loglevel=1)
-                    primordia_signal_maps = compute_primordia_signal_maps(primordia_signal_data, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
+                    primordia_signal_maps = compute_primordia_signal_maps(primordia_signal_data, normalized=args.normalized, cell_radius=5., density_k=0.75, verbose=args.verbose, debug=args.debug, loglevel=1)
                     sequence_primordia_signal_maps[exp][sequence_name] = primordia_signal_maps
 
                 if 'sequence_primordia' in args.map_plot:
@@ -359,7 +356,7 @@ def main():
             all_primordium_data = dict([(p, dict([(f, v) for d in all_data for f, v in d[p].items()])) for p in all_primordia])
             all_primordia_files = dict([(p, dict([(time, [f for f in all_primordium_data[p].keys() if int(f[-2:]) == time]) for time in all_times])) for p in all_primordia])
             all_primordia_data = dict([(p, dict([("t" + str(time).zfill(2), pd.concat([all_primordium_data[p][f] for f in all_primordia_files[p][time]])) for time in all_times if len(all_primordia_files[p][time]) > 0])) for p in all_primordia])
-            figure = signal_nuclei_all_primordia_plot(all_primordia_data, normalized=args.normalized, alpha=1./len(all_data), verbose=args.verbose, debug=args.debug, loglevel=1)
+            figure = signal_nuclei_all_primordia_plot(all_primordia_data, normalized=args.normalized, alpha=3./len(all_data), verbose=args.verbose, debug=args.debug, loglevel=1)
             figure.savefig(image_dirname + "/" + experiment_string + "_primordia_nuclei_signals.png")
 
         if 'all_aligned' in args.map_plot:

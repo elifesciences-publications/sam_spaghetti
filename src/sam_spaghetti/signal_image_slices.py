@@ -496,19 +496,21 @@ def sequence_signal_data_primordium_slices(sequence_name, image_dirname, filenam
 
             for primordium in primordia_range:
                 primordium_data = pd.concat([primordia_data[f][primordia_data[f]['primordium'] == primordium] for f in filenames])
+
+                primordium_theta = (primordium * golden_angle + 180) % 360 - 180
                 if len(primordium_data) > 0:
-                    primordium_theta = (primordium * golden_angle + 180) % 360 - 180
                     primordium_theta = primordium_theta + np.mean(primordium_data['aligned_theta'].values - primordium_theta)
                     primordium_theta = (primordium_theta + 180) % 360 - 180
 
-                    primordium_plane_normal = np.array([-np.sin(np.radians(primordium_theta)),np.cos(np.radians(primordium_theta)),0])
-                    primordium_plane_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_plane_normal)
+                primordium_plane_normal = np.array([-np.sin(np.radians(primordium_theta)),np.cos(np.radians(primordium_theta)),0])
+                primordium_plane_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_plane_normal)
 
-                    primordium_vector = np.array([np.cos(np.radians(primordium_theta)), np.sin(np.radians(primordium_theta)), 0])
-                    primordium_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_vector)
+                primordium_vector = np.array([np.cos(np.radians(primordium_theta)), np.sin(np.radians(primordium_theta)), 0])
+                primordium_dot_products = np.einsum("...ij,...j->...i",aligned_points,primordium_vector)
 
-                    file_primordium_data = file_data[(np.abs(primordium_plane_dot_products)<width)&(primordium_dot_products>-width)]
+                file_primordium_data = file_data[(np.abs(primordium_plane_dot_products)<width)&(primordium_dot_products>-width)]
+                # file_primordium_data = file_data[(np.abs(primordium_plane_dot_products)<width)&(primordium_dot_products>0)]
 
-                    signal_data_slices[primordium][filename] = file_primordium_data
+                signal_data_slices[primordium][filename] = file_primordium_data
 
         return signal_data_slices
