@@ -10,10 +10,10 @@ from matplotlib.colors import Normalize
 # import matplotlib.patheffects as patheffect
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from vplants.cellcomplex.property_topomesh.utils.matplotlib_tools import mpl_draw_topomesh
+from cellcomplex.property_topomesh.utils.matplotlib_tools import mpl_draw_topomesh
 
-from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
-from vplants.tissue_nukem_3d.signal_map_visualization import plot_signal_map, plot_tensor_data, plot_vector_data
+from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
+from tissue_nukem_3d.signal_map_visualization import plot_signal_map, plot_tensor_data, plot_vector_data
 
 from tissue_paredes.utils.matplotlib_tools import mpl_draw_wall_lines
 
@@ -77,7 +77,7 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
 
     if signal_names is None:
         signal_names = image_slices.keys()
-    logging.info("".join(["  " for l in xrange(loglevel)])+"--> Plotting signal images "+str(signal_names))
+    logging.info("".join(["  " for l in range(loglevel)])+"--> Plotting signal images "+str(signal_names))
 
     assert reference_name in signal_names
 
@@ -109,7 +109,7 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
             # extent = xx.max(),xx.min(),yy.min(),yy.max()
             # extent = xx.min(),xx.max(),yy.max(),yy.min()
 
-            logging.info("".join(["  " for l in xrange(loglevel)])+"--> Creating 2D Views : "+filename+" "+str(signal_names))
+            logging.info("".join(["  " for l in range(loglevel)])+"--> Creating 2D Views : "+filename+" "+str(signal_names))
             for i_signal, signal_name in enumerate(signal_names):
 
                 if not "_seg" in  signal_name:
@@ -172,7 +172,7 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
 
     if signal_names is None:
         signal_names = image_primordia_slices.keys()
-    logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Plotting signal images " + str(signal_names))
+    logging.info("".join(["  " for l in range(loglevel)]) + "--> Plotting signal images " + str(signal_names))
 
     assert reference_name in signal_names
     assert primordium in image_primordia_slices[reference_name].keys()
@@ -204,7 +204,7 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
 
             print(rr.shape,zz.shape,reference_img.shape)
 
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Creating 2D Views : " + filename + " " + str(signal_names))
+            logging.info("".join(["  " for l in range(loglevel)]) + "--> Creating 2D Views : " + filename + " " + str(signal_names))
             for i_signal, signal_name in enumerate(signal_names):
                 if signal_name in ['PI','PIN1']:
                     norm = Normalize(vmin=channel_ranges[signal_name][0],vmax=channel_ranges[signal_name][1])
@@ -260,7 +260,7 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
 
     if signal_names is None:
         signal_names = image_primordia_slices.keys()
-    logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Plotting signal images " + str(signal_names))
+    logging.info("".join(["  " for l in range(loglevel)]) + "--> Plotting signal images " + str(signal_names))
 
     assert reference_name in signal_names
 
@@ -298,7 +298,7 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
 
                     print(rr.shape,zz.shape,reference_img.shape)
 
-                    logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Creating 2D Views : " + filename + " P" + str(primordium) + " " + str(signal_names))
+                    logging.info("".join(["  " for l in range(loglevel)]) + "--> Creating 2D Views : " + filename + " P" + str(primordium) + " " + str(signal_names))
                     for i_signal, signal_name in enumerate(signal_names):
                         if signal_name in ['PI', 'PIN1']:
                             norm = Normalize(vmin=channel_ranges[signal_name][0], vmax=channel_ranges[signal_name][1])
@@ -389,7 +389,7 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
             file_data = signal_data[filename]
             file_data = file_data[file_data['layer']==1]
-            logging.info("".join(["  " for l in xrange(loglevel)])+"--> Plotting detected nuclei for "+filename)
+            logging.info("".join(["  " for l in range(loglevel)])+"--> Plotting detected nuclei for "+filename)
 
             if aligned:
                 X = file_data['aligned_x'].values
@@ -430,7 +430,7 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
                         figure.gca().quiver(X, Y, vectors[:, 0], vectors[:, 1], color=vector_signal_colors[signal_name], units='xy', scale=1.)
                     col = None
                 else:
-                    # logging.info("".join(["  " for l in xrange(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
+                    # logging.info("".join(["  " for l in range(loglevel+1)])+"--> Plotting nuclei signal "+signal_name)
                     col = figure.gca().scatter(X,Y,c=file_data[signal_name].values,s=markersize,linewidth=0,alpha=alpha,cmap=signal_colormaps[signal_name],vmin=signal_lut_ranges[signal_name][0],vmax=signal_lut_ranges[signal_name][1])
 
                 if i_signal == 0:
@@ -653,7 +653,7 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
 
 
         for i_time, (time, filename) in enumerate(zip(file_times,filenames)):
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Plotting signal maps for " + filename)
+            logging.info("".join(["  " for l in range(loglevel)]) + "--> Plotting signal maps for " + filename)
             signal_map = signal_maps[filename]
 
             for i_signal, signal_name in enumerate(signal_names):
@@ -726,7 +726,7 @@ def signal_map_all_primordia_plot(primordia_signal_maps, figure=None, signal_nam
             figure.patch.set_facecolor('w')
 
         for i_p, (primordium, filename) in enumerate(file_primordia):
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Plotting P"+str(primordium)+" signal maps for " + filename)
+            logging.info("".join(["  " for l in range(loglevel)]) + "--> Plotting P"+str(primordium)+" signal maps for " + filename)
 
             time = file_times[filenames == filename][0]
             i_time = np.arange(len(filenames))[filenames == filename][0]

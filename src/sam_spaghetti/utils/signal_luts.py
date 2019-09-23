@@ -67,7 +67,7 @@ for cmap_name in colormaps:
     cmap = colormaps[cmap_name]
 
     color_dict = dict(red=[],green=[],blue=[])
-    for p in np.sort(cmap._color_points.keys()):
+    for p in np.sort(list(cmap._color_points.keys())):
         for k,c in enumerate(['red','green','blue']):
             color_dict[c] += [(p,cmap._color_points[p][k],cmap._color_points[p][k])]
     for c in ['red','green','blue']:
@@ -75,7 +75,7 @@ for cmap_name in colormaps:
     cm.register_cmap(cmap_name,mpl.colors.LinearSegmentedColormap(cmap.name, color_dict))
 
     color_dict = dict(red=[],green=[],blue=[])
-    for p in np.sort(cmap._color_points.keys()):
+    for p in np.sort(list(cmap._color_points.keys())):
         for k,c in enumerate(['red','green','blue']):
             color_dict[c] = [(1-p,cmap._color_points[p][k],cmap._color_points[p][k])] + color_dict[c]
     for c in ['red','green','blue']:

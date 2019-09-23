@@ -7,15 +7,15 @@ import matplotlib.patches as patch
 import matplotlib.patheffects as path_effects
 import matplotlib as mpl
 
-from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
-from vplants.tissue_nukem_3d.signal_map import SignalMap
-from vplants.tissue_nukem_3d.signal_map_visualization import plot_signal_map
-from vplants.tissue_nukem_3d.signal_map_analysis import compute_signal_map_landscape, signal_map_landscape_analysis, signal_map_regions
+from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
+from tissue_nukem_3d.signal_map import SignalMap
+from tissue_nukem_3d.signal_map_visualization import plot_signal_map
+from tissue_nukem_3d.signal_map_analysis import compute_signal_map_landscape, signal_map_landscape_analysis, signal_map_regions
 
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_data, load_sequence_rigid_transformations
 from sam_spaghetti.utils.signal_luts import signal_colormaps, signal_ranges, signal_lut_ranges, primordia_colors
 
-from vplants.container import array_dict
+from cellcomplex.utils import array_dict
 
 import os
 import logging
@@ -100,7 +100,7 @@ def optimize_vertical_axis(positions, angle_max=0.2, angle_resolution=0.01, r_ma
     optimal_phi = (phis[optimal_rotation]).mean()
     optimal_psi = (psis[optimal_rotation]).mean()
 
-    logging.info("".join(["  " for l in xrange(loglevel)])+"--> Optimal angles : ("+str(optimal_phi)+", "+str(optimal_psi)+")")
+    logging.info("".join(["  " for l in range(loglevel)])+"--> Optimal angles : ("+str(optimal_phi)+", "+str(optimal_psi)+")")
     
     rotation_matrix_psi = np.array([[1,0,0],[0,np.cos(optimal_psi),-np.sin(optimal_psi)],[0,np.sin(optimal_psi),np.cos(optimal_psi)]])
     rotation_matrix_phi = np.array([[np.cos(optimal_phi),0,-np.sin(optimal_phi)],[0,1,0],[np.sin(optimal_phi),0,np.cos(optimal_phi)]])
@@ -229,7 +229,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
         
     for i_file,(reference_filename,floating_filename) in enumerate(zip(filenames[:-1],filenames[1:])):
 
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Computing sequence registered points "+reference_filename+" --> "+floating_filename)      
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Computing sequence registered points "+reference_filename+" --> "+floating_filename)
 
         rigid_matrix = sequence_rigid_transforms[(reference_filename,floating_filename)]
         invert_rigid_matrix = sequence_rigid_transforms[(floating_filename,reference_filename)]
@@ -290,10 +290,10 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
 
     #registration_filenames = [f for f in filenames]
     registration_filenames = [f for f in filenames if (not 't04' in f) and (int(f[-2:]) <= 10)]   
-    logging.info("".join(["  " for l in xrange(loglevel)])+"--> Aligning SAM sequence using "+str([f[-3:] for f in registration_filenames]))
+    logging.info("".join(["  " for l in range(loglevel)])+"--> Aligning SAM sequence using "+str([f[-3:] for f in registration_filenames]))
 
 
-    logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Computing optimal vertical orientation")   
+    logging.info("".join(["  " for l in range(loglevel)])+"  --> Computing optimal vertical orientation")
 
     registration_data = pd.concat([sequence_data[f] for f in registration_filenames])
     X = np.concatenate([sequence_data[f]['sequence_registered_x'].values for f in registration_filenames])
@@ -301,7 +301,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     Z = np.concatenate([sequence_data[f]['sequence_registered_z'].values for f in registration_filenames])
 
     clv3_center, clv3_radius = extract_clv3_circle(registration_data,position_name='sequence_registered')
-    logging.info("".join(["  " for l in xrange(loglevel)])+"    --> CZ Circle : "+str(clv3_center)+" ("+str(clv3_radius)+")")
+    logging.info("".join(["  " for l in range(loglevel)])+"    --> CZ Circle : "+str(clv3_center)+" ("+str(clv3_radius)+")")
     
     center_altitude = compute_local_2d_signal(np.transpose([X,Y]),clv3_center,Z)[0]
     centered_positions = np.transpose([X,Y,Z])-np.array(list(clv3_center)+[center_altitude])
@@ -326,7 +326,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_vertical_axis_optimization.png")
     
 
-    logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Detecting global qDII minimum")  
+    logging.info("".join(["  " for l in range(loglevel)])+"  --> Detecting global qDII minimum")
 
     X = rotated_positions[:,0]
     Y = rotated_positions[:,1]
@@ -356,7 +356,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     figure.gca().contourf(xx,yy,radial_qDII,np.linspace(signal_ranges['Normalized_qDII'][0],signal_ranges['Normalized_qDII'][1],51),cmap=signal_colormaps['Normalized_qDII'],alpha=1,antialiased=True,vmin=signal_lut_ranges['Normalized_qDII'][0],vmax=signal_lut_ranges['Normalized_qDII'][1])
     figure.gca().contour(xx,yy,radial_qDII,np.linspace(signal_ranges['Normalized_qDII'][0],signal_ranges['Normalized_qDII'][1],51),cmap='gray',alpha=0.2,linewidths=1,antialiased=True,vmin=-1,vmax=0)
         
-    for a in xrange(16):
+    for a in range(16):
         figure.gca().contourf(xx,yy,confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
         
     figure.gca().axis('equal')
@@ -367,7 +367,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     ring_theta_min = 180.*ring_theta_min/np.pi
     
     absolute_min = ring_radius_min*np.array([np.cos(np.pi*ring_theta_min/180.),np.sin(np.pi*ring_theta_min/180.)])
-    logging.info("".join(["  " for l in xrange(loglevel)])+"    --> qDII minimum : "+str(absolute_min)+" ("+str(ring_theta_min)+")")
+    logging.info("".join(["  " for l in range(loglevel)])+"    --> qDII minimum : "+str(absolute_min)+" ("+str(ring_theta_min)+")")
     
     
     c = patch.RegularPolygon(xy=absolute_min,numVertices=3,radius=3,orientation=-np.pi,fc=primordia_colors[0],ec='w',lw=3,alpha=1)
@@ -376,7 +376,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_Normalized_qDII_map.jpg")
         
 
-    logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Applying alignment transform "+sequence_name) 
+    logging.info("".join(["  " for l in range(loglevel)])+"  --> Applying alignment transform "+sequence_name)
 
     theta_min = np.pi*ring_theta_min/180.
     theta_matrix = np.array([[np.cos(theta_min),-np.sin(theta_min)],[np.sin(theta_min),np.cos(theta_min)]])
@@ -387,7 +387,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     #offset = 0
     
     for i_file, filename in enumerate(filenames):
-        logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Applying alignment transform on "+filename) 
+        logging.info("".join(["  " for l in range(loglevel)])+"  --> Applying alignment transform on "+filename)
 
         data = sequence_data[filename]
         
@@ -405,7 +405,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
         sequence_data[filename]['aligned_y'] = theta_positions[:,1]
         sequence_data[filename]['aligned_z'] = rotated_positions[:,2]
 
-        sequence_data[filename]['clv3_radius'] = [clv3_radius for i in xrange(len(sequence_data[filename]))]
+        sequence_data[filename]['clv3_radius'] = [clv3_radius for i in range(len(sequence_data[filename]))]
     
         if save_files:
             normalized=True
@@ -436,7 +436,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
 
         clv3_radius = data['clv3_radius'].mean()
 
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Computing qDII landscape "+filename)    
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Computing qDII landscape "+filename)
         
 
         # file_map = SignalMap(data, extent=r_max+10, position_name='aligned', resolution=0.5, polar=True, radius=cell_radius, density_k=density_k)
@@ -480,7 +480,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         landscape_figure.gca().contour(xx,yy,(qDII_gradient_valleys>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Purples',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
         landscape_figure.gca().contour(xx,yy,(qdII_gradient_saddles)&(file_map.confidence_map>0.5),[0.5],cmap='Greens',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
  
-        for a in xrange(16):
+        for a in range(16):
             landscape_figure.gca().contourf(xx,yy,file_map.confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
         
         # CS = landscape_figure.gca().contour(xx, yy, R,np.linspace(0,80,17),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
@@ -499,7 +499,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
 
 
 
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Detecting landscape extremal points "+filename)  
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Detecting landscape extremal points "+filename)
 
         extrema_data = signal_map_landscape_analysis(file_map,signal_name,threshold=0.03)
 
@@ -549,7 +549,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         extrema_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_all_extrema.csv"])    
         extrema_data.to_csv(extrema_filename)
 
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Labelling extremal points by primordia "+filename)  
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Labelling extremal points by primordia "+filename)
 
         opening_angle = 75.
         primordia_extrema_data = label_primordia_extrema(extrema_data, signal_name, clv3_radius, opening_angle=opening_angle)
@@ -587,7 +587,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
             primordia_domains[primordium] *= (R/clv3_radius)>0.5
             primordia_domains[primordium] = np.maximum(0,np.minimum(primordia_domains[primordium],1))
             
-            color = np.array([int(primordia_colors[primordium][1+2*k:3+2*k],16) for k in xrange(3)])
+            color = np.array([int(primordia_colors[primordium][1+2*k:3+2*k],16) for k in range(3)])
             color_dict = dict(red=[],green=[],blue=[])
             for k,c in enumerate(['red','green','blue']):
                 color_dict[c] += [(0,1.,1.),(1,color[k]/255.,color[k]/255.)]
@@ -638,12 +638,12 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         primordium_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_Normalized_qDII_map_global_primordia_scores.png"]) 
         primordium_figure.savefig(primordium_filename)
         
-        primordia_extrema_data['clv3_radius'] = [clv3_radius for i in xrange(len(primordia_extrema_data))]
-        primordia_extrema_data['filename'] = [filename for i in xrange(len(primordia_extrema_data))]
-        primordia_extrema_data['experiment'] = [data['experiment'].values[0] for i in xrange(len(primordia_extrema_data))]
-        primordia_extrema_data['sam_id'] = [data['sam_id'].values[0] for i in xrange(len(primordia_extrema_data))]
-        primordia_extrema_data['hour_time'] = [data['hour_time'].values[0] for i in xrange(len(primordia_extrema_data))]
-        primordia_extrema_data['growth_condition'] = ['LD' if 'LD' in filename else 'SD' for i in xrange(len(primordia_extrema_data))]
+        primordia_extrema_data['clv3_radius'] = [clv3_radius for i in range(len(primordia_extrema_data))]
+        primordia_extrema_data['filename'] = [filename for i in range(len(primordia_extrema_data))]
+        primordia_extrema_data['experiment'] = [data['experiment'].values[0] for i in range(len(primordia_extrema_data))]
+        primordia_extrema_data['sam_id'] = [data['sam_id'].values[0] for i in range(len(primordia_extrema_data))]
+        primordia_extrema_data['hour_time'] = [data['hour_time'].values[0] for i in range(len(primordia_extrema_data))]
+        primordia_extrema_data['growth_condition'] = ['LD' if 'LD' in filename else 'SD' for i in range(len(primordia_extrema_data))]
         
         for field in ['aligned_z','CLV3','Normalized_CLV3','DIIV','Normalized_DIIV']:
             primordia_extrema_data[field] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([primordia_extrema_data['aligned_x'],primordia_extrema_data['aligned_y']]),data[field].values)

@@ -20,14 +20,14 @@ from timagetk.components import SpatialImage
 from timagetk.algorithms import watershed
 from timagetk.algorithms import resample_isotropic
 
-from vplants.tissue_nukem_3d.microscopy_images.read_microscopy_image import read_czi_image
-from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
+from tissue_nukem_3d.microscopy_images.read_microscopy_image import read_czi_image
+from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
 
-from vplants.cellcomplex.property_topomesh.property_topomesh_io import save_ply_property_topomesh, read_ply_property_topomesh
-from vplants.cellcomplex.property_topomesh.property_topomesh_analysis import compute_topomesh_property, compute_topomesh_cell_property_from_faces
+from cellcomplex.property_topomesh.io import save_ply_property_topomesh, read_ply_property_topomesh
+from cellcomplex.property_topomesh.analysis import compute_topomesh_property, compute_topomesh_cell_property_from_faces
 
-from vplants.cellcomplex.property_topomesh.utils.matplotlib_tools import mpl_draw_topomesh
-from vplants.cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to_dataframe
+from cellcomplex.property_topomesh.utils.matplotlib_tools import mpl_draw_topomesh
+from cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to_dataframe
 
 from tissue_paredes.wall_extraction import extract_wall_meshes
 from tissue_paredes.wall_analysis import compute_wall_property, compute_wall_angle, estimate_cell_centers
@@ -61,7 +61,7 @@ def extract_sequence_walls(sequence_name, save_files=True, image_dirname=None, m
         wall_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_walls.ply"
 
         all_wall_topomesh = extract_wall_meshes(seg_img,wall_types=wall_types,resampling_voxelsize=resampling_voxelsize,smoothing=True,target_edge_length=target_edge_length)
-        logging.info("".join(["  " for l in xrange(loglevel)]) + "--> " + filename + " : " + str(all_wall_topomesh.nb_wisps(3)) + " wall meshes extracted")
+        logging.info("".join(["  " for l in range(loglevel)]) + "--> " + filename + " : " + str(all_wall_topomesh.nb_wisps(3)) + " wall meshes extracted")
         wall_topomeshes[filename] = all_wall_topomesh
 
         if save_files:
@@ -102,7 +102,7 @@ def compute_sequence_wall_polarities(sequence_name, save_files=True, image_dirna
         quantify_wall_membrane_signals(all_wall_topomesh,img_dict,membrane_channel=membrane_name,channel_names=signal_names,exclude_contours=False)
 
         for channel_name in signal_names:
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "  --> Quantfying " + channel_name + " wall polarity " )
+            logging.info("".join(["  " for l in range(loglevel)]) + "  --> Quantfying " + channel_name + " wall polarity " )
             compute_wall_signal_polarities(all_wall_topomesh,channel_name)
 
         properties_to_save={0:['wall_label'],1:[],2:[],3:['cell_labels']}

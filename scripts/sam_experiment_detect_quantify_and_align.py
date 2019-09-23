@@ -15,7 +15,7 @@ from sam_spaghetti.signal_data_compilation import compile_signal_data, compile_p
 from sam_spaghetti.sequence_growth_estimation import compute_growth
 from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
-from vplants.tissue_nukem_3d.signal_map import save_signal_map
+from tissue_nukem_3d.signal_map import save_signal_map
 
 import logging
 import argparse
@@ -145,7 +145,7 @@ def main():
             logging.info("--> Loading sequences for experiment "+str(exp))
 
             sequence_names[exp] = []
-            for sam_id in xrange(max_sam_id):
+            for sam_id in range(max_sam_id):
                 sequence_name = experiment_name+"_sam"+str(sam_id).zfill(2)
                 logging.debug("--> Trying to load sequence "+str(sequence_name))
                 signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)

@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from vplants.cellcomplex.property_topomesh.property_topomesh_io import save_ply_property_topomesh, read_ply_property_topomesh
-from vplants.cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to_dataframe
+from cellcomplex.property_topomesh.io import save_ply_property_topomesh, read_ply_property_topomesh
+from cellcomplex.property_topomesh.utils.pandas_tools import topomesh_to_dataframe
 
-from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
+from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
 
 from sam_spaghetti.sam_sequence_info import get_experiment_name
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_data, load_sequence_primordia_data
@@ -26,7 +26,7 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
     data_list = []
 
     for exp in experiments:
-        for sam_id in xrange(max_sam_id):
+        for sam_id in range(max_sam_id):
 
             sequence_name = get_experiment_name(exp, data_dirname) + "_sam" + str(sam_id).zfill(2)
             sequence_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=aligned, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel)
@@ -56,13 +56,13 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                                 signal_data  = data[signal][data['layer']==1]
                                 data['Normalized_'+signal] = 0.5 + 0.2*(data[signal]-signal_data.mean())/(signal_data.std())
                     
-                    data['filename'] = [filename for i in xrange(len(data))]
-                    data['experiment'] = [exp for i in xrange(len(data))]
-                    data['sam_id'] = [sam_id for i in xrange(len(data))]
-                    data['hour_time'] = [time for i in xrange(len(data))]
-                    data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in xrange(len(data))]
+                    data['filename'] = [filename for i in range(len(data))]
+                    data['experiment'] = [exp for i in range(len(data))]
+                    data['sam_id'] = [sam_id for i in range(len(data))]
+                    data['hour_time'] = [time for i in range(len(data))]
+                    data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in range(len(data))]
                     
-                    data['short_name'] = [exp+'_Sam'+str(sam_id) for i in xrange(len(data))]
+                    data['short_name'] = [exp+'_Sam'+str(sam_id) for i in range(len(data))]
                     
                     if save_files:
                         data.to_csv(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_normalized_signal_data.csv",index=False) 
@@ -74,11 +74,11 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                     data['nuclei_count'] = [distance_rank[d] for d in data['radial_distance']]
                     data['nuclei_distance'] = np.sqrt(data['nuclei_count']/np.pi)
                 
-                    data['filename'] = [filename for i in xrange(len(data))]
-                    data['experiment'] = [exp for i in xrange(len(data))]
-                    data['sam_id'] = [sam_id for i in xrange(len(data))]
-                    data['hour_time'] = [time for i in xrange(len(data))]
-                    data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in xrange(len(data))]
+                    data['filename'] = [filename for i in range(len(data))]
+                    data['experiment'] = [exp for i in range(len(data))]
+                    data['sam_id'] = [sam_id for i in range(len(data))]
+                    data['hour_time'] = [time for i in range(len(data))]
+                    data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in range(len(data))]
 
                     if save_files:
                         data.to_csv(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_aligned_L1_normalized_signal_data.csv",index=False) 
@@ -110,7 +110,7 @@ def compile_primordia_data(experiments, image_dirname, data_dirname=None, save_f
     data_list = []
 
     for exp in experiments:
-        for sam_id in xrange(max_sam_id):
+        for sam_id in range(max_sam_id):
 
             sequence_name = get_experiment_name(exp, data_dirname) + "_sam" + str(sam_id).zfill(2)
             sequence_primordia_data = load_sequence_primordia_data(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel)
@@ -120,12 +120,12 @@ def compile_primordia_data(experiments, image_dirname, data_dirname=None, save_f
                 primordia_data = sequence_primordia_data[filename]
                 time = int(filename[-2:])
                     
-                primordia_data['filename'] = [filename for i in xrange(len(primordia_data))]
-                primordia_data['experiment'] = [exp for i in xrange(len(primordia_data))]
-                primordia_data['sam_id'] = [sam_id for i in xrange(len(primordia_data))]
-                primordia_data['hour_time'] = [time for i in xrange(len(primordia_data))]
-                primordia_data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in xrange(len(primordia_data))]
-                primordia_data['short_name'] = [exp+'_Sam'+str(sam_id) for i in xrange(len(primordia_data))]
+                primordia_data['filename'] = [filename for i in range(len(primordia_data))]
+                primordia_data['experiment'] = [exp for i in range(len(primordia_data))]
+                primordia_data['sam_id'] = [sam_id for i in range(len(primordia_data))]
+                primordia_data['hour_time'] = [time for i in range(len(primordia_data))]
+                primordia_data['growth_condition'] = ["LD" if "LD" in filename else "SD" for i in range(len(primordia_data))]
+                primordia_data['short_name'] = [exp+'_Sam'+str(sam_id) for i in range(len(primordia_data))]
 
                 if filename in sequence_data:
                     data = sequence_data[filename]

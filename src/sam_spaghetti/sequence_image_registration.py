@@ -2,12 +2,10 @@ import numpy as np
 from scipy import ndimage as nd
 import pandas as pd
 
-from vplants.image.serial.all import imread, imsave
+from vplants.image.serial.all import imsave as legacy_imsave
 from vplants.image.spatial_image import SpatialImage
 
-from vplants.container import array_dict
-
-from vplants.tissue_nukem_3d.growth_estimation import image_sequence_rigid_vectorfield_registration, apply_sequence_point_registration
+from tissue_nukem_3d.growth_estimation import image_sequence_rigid_vectorfield_registration, apply_sequence_point_registration
 
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_rigid_transformations, load_sequence_segmented_images, load_sequence_signal_data
 
@@ -49,13 +47,13 @@ def register_sequence_images(sequence_name, save_files=True, image_dirname=None,
             np.savetxt(floating_to_reference_transform_file, rigid_transformations[(floating_filename,reference_filename)], delimiter=";")
 
             start_time = current_time()
-            logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving vectorfield transformations")
+            logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving vectorfield transformations")
             vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
             imsave(vector_field_file,SpatialImage(vectorfield_transformations[(floating_filename,reference_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
             
             invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
             imsave(invert_vector_field_file,SpatialImage(vectorfield_transformations[(reference_filename,floating_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
-            logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Saving vectorfield transformations ["+str(current_time()-start_time)+" s]")
+            logging.info("".join(["  " for l in range(loglevel)])+"  <-- Saving vectorfield transformations ["+str(current_time()-start_time)+" s]")
 
     result = (transformed_images, rigid_transformations, vectorfield_transformations)
     return result

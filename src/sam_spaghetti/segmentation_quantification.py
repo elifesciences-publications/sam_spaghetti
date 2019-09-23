@@ -18,8 +18,8 @@ from timagetk.plugins import labels_post_processing
 from timagetk.algorithms.resample import isometric_resampling, resample
 from timagetk.algorithms.exposure import z_slice_contrast_stretch, z_slice_equalize_adapthist
 
-from vplants.tissue_analysis.property_spatial_image import PropertySpatialImage, property_spatial_image_to_dataframe
-from vplants.tissue_analysis.spatial_image_analysis import SpatialImageAnalysis
+from tissue_analysis.property_spatial_image import PropertySpatialImage, property_spatial_image_to_dataframe
+from tissue_analysis.spatial_image_analysis import SpatialImageAnalysis
 
 
 def splitext_zip(fname):
@@ -287,7 +287,7 @@ def segment_and_quantify(img_dict, membrane_name='PI', signal_names=None, save_f
 
     df = property_spatial_image_to_dataframe(p_img)
     if save_files:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Saving segmented data")
+        logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving segmented data")
         if ('DIIV' in df.columns)&('TagBFP' in df.columns):
             df['qDII'] = df['DIIV'].values/df['TagBFP'].values
         if ('RGAV' in df.columns)&('TagBFP' in df.columns):

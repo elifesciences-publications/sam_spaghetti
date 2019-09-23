@@ -4,17 +4,16 @@ import scipy.ndimage as nd
 
 from scipy.misc import imsave as imsave2d
 
-from vplants.image.spatial_image import SpatialImage
 from vplants.image.registration import pts2transfo
 
-from timagetk.components import SpatialImage as TissueImage
+from timagetk.components import SpatialImage
 from timagetk.io import imsave
 
 from timagetk.wrapping.bal_trsf import TRSF_TYPE_DICT
 from timagetk.wrapping.bal_trsf import TRSF_UNIT_DICT
 from timagetk.algorithms.trsf import allocate_c_bal_matrix, apply_trsf, create_trsf
 
-from vplants.tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
+from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
 
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data, load_sequence_primordia_data, load_sequence_segmented_images
 from sam_spaghetti.sam_sequence_primordia_alignment import golden_angle
@@ -32,7 +31,7 @@ def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=Fals
     if signal_names is None:
         signal_names = signal_images.keys()
 
-    logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Computing aligned signal images " + str(signal_names))
+    logging.info("".join(["  " for l in range(loglevel)]) + "--> Computing aligned signal images " + str(signal_names))
 
     if filenames is None:
         filenames = np.sort(signal_images[signal_names[0]].keys())
@@ -83,20 +82,20 @@ def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=Fals
 
             for i_signal, signal_name in enumerate(signal_names):
                 start_time = current_time()
-                logging.info("".join(["  " for l in xrange(loglevel)]) + "  --> Aligning : " + filename + " " + signal_name)
+                logging.info("".join(["  " for l in range(loglevel)]) + "  --> Aligning : " + filename + " " + signal_name)
 
                 if signal_images[signal_name].has_key(filename):
                     if reflections[filename]:
                         reflected_image = deepcopy(signal_images[signal_name][filename])
                         reflected_image[:, :] = signal_images[signal_name][filename][:, ::-1, :]
-                        aligned_images[signal_name][filename] = apply_trsf(TissueImage(reflected_image.astype(reference_img.dtype), voxelsize=reference_img.voxelsize), alignment_trsf, param_str_2='-interpolation nearest')
+                        aligned_images[signal_name][filename] = apply_trsf(SpatialImage(reflected_image.astype(reference_img.dtype), voxelsize=reference_img.voxelsize), alignment_trsf, param_str_2='-interpolation nearest')
                     else:
-                        aligned_images[signal_name][filename] = apply_trsf(TissueImage(deepcopy(signal_images[signal_name][filename]).astype(reference_img.dtype), voxelsize=reference_img.voxelsize), alignment_trsf, param_str_2='-interpolation nearest')
+                        aligned_images[signal_name][filename] = apply_trsf(SpatialImage(deepcopy(signal_images[signal_name][filename]).astype(reference_img.dtype), voxelsize=reference_img.voxelsize), alignment_trsf, param_str_2='-interpolation nearest')
                     del aligned_images[signal_name][filename].metadata['timagetk']
-                logging.info("".join(["  " for l in xrange(loglevel)]) + "  <-- Aligning : " + filename + " " + signal_name + " [" + str(current_time() - start_time) + " s]")
+                logging.info("".join(["  " for l in range(loglevel)]) + "  <-- Aligning : " + filename + " " + signal_name + " [" + str(current_time() - start_time) + " s]")
 
             if save_files:
-                logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Saving aligned signal images : " + filename + " " + str(signal_names))
+                logging.info("".join(["  " for l in range(loglevel)]) + "--> Saving aligned signal images : " + filename + " " + str(signal_names))
                 for i_signal, signal_name in enumerate(signal_names):
                     image_filename = image_dirname + "/" + sequence_name + "/" + filename + "/" + filename + "_aligned_" + signal_name + ".inr.gz"
                     imsave(image_filename, aligned_images[signal_name][filename])
@@ -118,7 +117,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
     if signal_names is None:
         signal_names = signal_images.keys()
 
-    logging.info("".join(["  " for l in xrange(loglevel)])+"--> Computing 2D signal images "+str(signal_names))
+    logging.info("".join(["  " for l in range(loglevel)])+"--> Computing 2D signal images "+str(signal_names))
 
     assert reference_name in signal_names
 
@@ -139,9 +138,9 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                 filtered_img = signal_img
                 if filtering:
                     start_time = current_time()
-                    logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Filtering : "+filename+" "+signal_name)
+                    logging.info("".join(["  " for l in range(loglevel)])+"  --> Filtering : "+filename+" "+signal_name)
                     filtered_img = gaussian_filter(filtered_img,sigma=nuclei_sigma/np.array(signal_img.voxelsize),order=0)
-                    logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Filtering : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
+                    logging.info("".join(["  " for l in range(loglevel)])+"  <-- Filtering : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
                 filtered_signal_images[signal_name][filename] = filtered_img.astype(signal_images[signal_name][filename].dtype)    
 
         if aligned:
@@ -196,7 +195,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
 
             if projection_type == "L1_slice":
                 start_time = current_time()
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Computing Z-map : "+filename)
+                logging.info("".join(["  " for l in range(loglevel)])+"  --> Computing Z-map : "+filename)
 
                 zz = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([xx,yy],(1,2,0)),Z)
                 if aligned:
@@ -214,11 +213,11 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
 
                 slice_coords[filename] = coords
 
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Computing Z-map : "+filename+"   ["+str(current_time() - start_time)+" s]")
+                logging.info("".join(["  " for l in range(loglevel)])+"  <-- Computing Z-map : "+filename+"   ["+str(current_time() - start_time)+" s]")
 
                 for i_signal, signal_name in enumerate(signal_names):
                     start_time = current_time()
-                    logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Slicing : "+filename+" "+signal_name)
+                    logging.info("".join(["  " for l in range(loglevel)])+"  --> Slicing : "+filename+" "+signal_name)
 
                     if aligned:
                         image_slices[signal_name][filename] = aligned_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape)
@@ -229,7 +228,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                     if "_seg" in signal_name:
                         image_slices[signal_name][filename][image_slices[signal_name][filename]==0] = 1
 
-                    logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Slicing : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
+                    logging.info("".join(["  " for l in range(loglevel)])+"  <-- Slicing : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
 
             elif projection_type == "max_intensity":
                 if aligned:
@@ -247,7 +246,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                 for i_signal, signal_name in enumerate(signal_names):
                     if not '_seg' in signal_name:
                         start_time = current_time()
-                        logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Projecting : "+filename+" "+signal_name)
+                        logging.info("".join(["  " for l in range(loglevel)])+"  --> Projecting : "+filename+" "+signal_name)
                         # depth = (np.arange(size[2])/float(size[2]-1))[np.newaxis,np.newaxis]*np.ones_like(xx)[:,:,np.newaxis]
                         # depth = np.ones_like(depth)
 
@@ -261,17 +260,17 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                         max_projection[extra_mask] = 0
 
                         image_slices[signal_name][filename] = max_projection
-                        logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Projecting : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
+                        logging.info("".join(["  " for l in range(loglevel)])+"  <-- Projecting : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
                     else:
                         start_time = current_time()
-                        logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Projecting : "+filename+" segmented " + membrane_name)
+                        logging.info("".join(["  " for l in range(loglevel)])+"  --> Projecting : "+filename+" segmented " + membrane_name)
                         projection = labelled_image_projection(filtered_signal_images[signal_name][filename],direction=microscope_orientation)
                         image_slices[signal_name][filename] = projection
                         image_slices[signal_name][filename][image_slices[signal_name][filename]==0] = 1
-                        logging.info("".join(["  " for l in xrange(loglevel)]) + "  <-- Projecting : " + filename + " segmented " + membrane_name + " [" + str(current_time() - start_time) + " s]")
+                        logging.info("".join(["  " for l in range(loglevel)]) + "  <-- Projecting : " + filename + " segmented " + membrane_name + " [" + str(current_time() - start_time) + " s]")
 
             if save_files and projection_type in ['L1_slice']:
-                logging.info("".join(["  " for l in xrange(loglevel)])+"--> Saving 2D signal images : "+filename+" "+str(signal_names))
+                logging.info("".join(["  " for l in range(loglevel)])+"--> Saving 2D signal images : "+filename+" "+str(signal_names))
                 for i_signal, signal_name in enumerate(signal_names):
                     image_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+("_aligned_" if aligned else "_")+projection_type+"_"+signal_name+"_projection.tif"
                     imsave2d(image_filename,image_slices[signal_name][filename])
@@ -411,7 +410,7 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Fa
 
                     for i_signal, signal_name in enumerate(signal_names):
                         start_time = current_time()
-                        logging.info("".join(["  " for l in xrange(loglevel)]) + "  --> Slicing P"+str(primordium)+" : " + filename + " " + signal_name)
+                        logging.info("".join(["  " for l in range(loglevel)]) + "  --> Slicing P"+str(primordium)+" : " + filename + " " + signal_name)
 
                         # image_theta = primordium_theta # identity
                         # image_theta = -primordium_theta # flip X
@@ -423,12 +422,12 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Fa
 
                         slice_img = image_angular_slice(aligned_images[signal_name][filename],theta=image_theta,extent=(0,r_max),width=0. if signal_name in ['PI','PIN1'] else 2.)
                         print(rr.shape,zz.shape,slice_img.shape)
-                        image_slices[signal_name][primordium][filename] = TissueImage(np.transpose(slice_img),voxelsize=(resolution,reference_img.voxelsize[2]))
+                        image_slices[signal_name][primordium][filename] = SpatialImage(np.transpose(slice_img),voxelsize=(resolution,reference_img.voxelsize[2]))
 
-                        logging.info("".join(["  " for l in xrange(loglevel)]) + "  <-- Slicing P"+str(primordium)+" : " + filename + " " + signal_name + " [" + str(current_time() - start_time) + " s]")
+                        logging.info("".join(["  " for l in range(loglevel)]) + "  <-- Slicing P"+str(primordium)+" : " + filename + " " + signal_name + " [" + str(current_time() - start_time) + " s]")
 
             if save_files:
-                logging.info("".join(["  " for l in xrange(loglevel)])+"--> Saving primordium signal images : "+filename+" "+str(signal_names))
+                logging.info("".join(["  " for l in range(loglevel)])+"--> Saving primordium signal images : "+filename+" "+str(signal_names))
                 for i_signal, signal_name in enumerate(signal_names):
                     for primordium in primordia_range:
                         if image_slices[signal_name][primordium].has_key(filename):

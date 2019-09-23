@@ -5,8 +5,8 @@ import pandas as pd
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data, load_sequence_rigid_transformations, load_sequence_vectorfield_transformations
 from sam_spaghetti.utils.signal_luts import quantified_signals
 
-from vplants.cellcomplex.property_topomesh.property_topomesh_io import save_ply_property_topomesh
-from vplants.tissue_nukem_3d.growth_estimation import surfacic_growth_estimation, volumetric_growth_estimation
+from cellcomplex.property_topomesh.io import save_ply_property_topomesh
+from tissue_nukem_3d.growth_estimation import surfacic_growth_estimation, volumetric_growth_estimation
 
 from copy import deepcopy
 from time import time as current_time

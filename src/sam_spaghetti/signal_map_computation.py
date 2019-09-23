@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from vplants.tissue_nukem_3d.signal_map import SignalMap
+from tissue_nukem_3d.signal_map import SignalMap
 
 from sam_spaghetti.utils.signal_luts import quantified_signals
 
@@ -32,7 +32,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
         for i_time, (time, filename) in enumerate(zip(file_times, filenames)):
             file_data = signal_data[filename]
             file_data = file_data[file_data['layer'] == 1]
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Computing signal maps for " + filename)
+            logging.info("".join(["  " for l in range(loglevel)]) + "--> Computing signal maps for " + filename)
 
             if aligned:
                 position_name = 'aligned'
@@ -47,7 +47,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
             signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=polar, radius=cell_radius, density_k=density_k)
             for signal_name in signal_names:
                 signal_map.compute_signal_map(signal_name)
-                logging.info("  ".join(["  " for l in xrange(loglevel)]) + "--> Computing "+signal_name+" map for " + filename)
+                logging.info("  ".join(["  " for l in range(loglevel)]) + "--> Computing "+signal_name+" map for " + filename)
 
             signal_maps[filename] = signal_map
 
@@ -84,7 +84,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
                 file_primordium_data = primordia_signal_data[int(primordium)][filename]
                 time = file_times[filenames == filename][0]
                 i_time = np.arange(len(filenames))[filenames == filename][0]
-                logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Computing P"+str(primordium)+" signal maps for " + filename)
+                logging.info("".join(["  " for l in range(loglevel)]) + "--> Computing P"+str(primordium)+" signal maps for " + filename)
 
                 file_primordium_data['slice_x'] = file_primordium_data['radial_distance'].values
                 file_primordium_data['slice_y'] = file_primordium_data['aligned_z'].values

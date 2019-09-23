@@ -7,10 +7,10 @@ import numpy as np
 
 from time import time as current_time
 
-from scipy.misc import imread as imread2d
-from vplants.image.serial.all import imread as legacy_imread
+from imageio import imread as imread2d
+# from vplants.image.serial.all import imread as legacy_imread
 from timagetk.io import imread
-from vplants.cellcomplex.property_topomesh.property_topomesh_io import read_ply_property_topomesh
+from cellcomplex.property_topomesh.io import read_ply_property_topomesh
 
 from sam_spaghetti.utils.signal_luts import vector_signals, tensor_signals
 
@@ -24,13 +24,13 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
     signal_images = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
         for i_f,filename in enumerate(sequence_filenames):
 
@@ -48,7 +48,7 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
             for signal_name in file_signals:
 
                 start_time = current_time()
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+signal_name)
+                logging.info("".join(["  " for l in range(loglevel)])+"  --> Loading : "+filename+" "+signal_name)
 
                 if registered and i_f>0:
                     signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_to_"+sequence_filenames[0][-3:]+"_"+signal_name+".inr.gz"
@@ -68,8 +68,8 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
                     if os.path.exists(signal_image_file):
                         signal_images[signal_name][filename] = imread(signal_image_file)
                     else:
-                        logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
-                logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Loading : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
+                        logging.warn("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
+                logging.info("".join(["  " for l in range(loglevel)])+"  <-- Loading : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
 
     return signal_images
 
@@ -81,17 +81,17 @@ def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='
     segmented_images = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence segmented images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence segmented images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
         for i_f, filename in enumerate(sequence_filenames):
             start_time = current_time()
-            logging.info("".join(["  " for l in xrange(loglevel)])+"  --> Loading : "+filename+" "+membrane_name+" segmented")
+            logging.info("".join(["  " for l in range(loglevel)])+"  --> Loading : "+filename+" "+membrane_name+" segmented")
             if registered and i_f>0:
                 segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_to_"+sequence_filenames[0][-3:]+"_"+membrane_name+"_seg.inr.gz"
             else:
@@ -101,8 +101,8 @@ def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='
                 img = imread(segmented_image_file)
                 segmented_images[filename] = img
             else:
-                logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+membrane_name+" segmented")
-            logging.info("".join(["  " for l in xrange(loglevel)])+"  <-- Loading : "+filename+" "+membrane_name+" segmented  ["+str(current_time() - start_time)+" s]")
+                logging.warn("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+membrane_name+" segmented")
+            logging.info("".join(["  " for l in range(loglevel)])+"  <-- Loading : "+filename+" "+membrane_name+" segmented  ["+str(current_time() - start_time)+" s]")
 
     return segmented_images
 
@@ -114,13 +114,13 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
     signal_image_slices = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence 2D signal images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence 2D signal images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
 
         for filename in sequence_filenames:
             data_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"
@@ -143,7 +143,7 @@ def load_sequence_signal_image_slices(sequence_name, image_dirname, signal_names
                         img = (img.astype(np.uint16))*256
                     signal_image_slices[signal_name][filename] = img
                 else:
-                    logging.warn("".join(["  " for l in xrange(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
+                    logging.warn("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
     return signal_image_slices
 
 
@@ -164,14 +164,14 @@ def load_sequence_signal_data(sequence_name, image_dirname, nuclei=True, normali
     signal_data = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_","signal" if nuclei else "cell","_data.csv"])
         if os.path.exists(data_filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
         for filename in sequence_filenames:
             data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_L1" if aligned else "","_normalized" if normalized else "","_","signal" if nuclei else "cell","_data.csv"])
             df = pd.read_csv(data_filename)
@@ -192,14 +192,14 @@ def load_sequence_primordia_data(sequence_name, image_dirname, verbose=False, de
     primordia_data = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         primordia_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_primordia_extrema.csv"])
         if os.path.exists(primordia_data_filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence primordia data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence primordia data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
         for filename in sequence_filenames:
             primordia_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_primordia_extrema.csv"])
             df = pd.read_csv(primordia_data_filename)
@@ -215,7 +215,7 @@ def load_sequence_rigid_transformations(sequence_name, image_dirname, verbose=Fa
     rigid_transformations = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
             sequence_filenames += [filename]
@@ -223,7 +223,7 @@ def load_sequence_rigid_transformations(sequence_name, image_dirname, verbose=Fa
             sequence_filenames += [filename]
 
     for i_file,(reference_filename,floating_filename) in enumerate(zip(sequence_filenames[:-1],sequence_filenames[1:])):
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading rigid transforms "+reference_filename+" <--> "+floating_filename)
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading rigid transforms "+reference_filename+" <--> "+floating_filename)
         reference_to_floating_transform_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_rigid_transform.csv"
         floating_to_reference_transform_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_rigid_transform.csv"
             
@@ -240,7 +240,7 @@ def load_sequence_vectorfield_transformations(sequence_name, image_dirname, verb
     vectorfield_transformations = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_signal_data.csv"):
             sequence_filenames += [filename]
@@ -249,16 +249,16 @@ def load_sequence_vectorfield_transformations(sequence_name, image_dirname, verb
 
     for i_file,(reference_filename,floating_filename) in enumerate(zip(sequence_filenames[:-1],sequence_filenames[1:])):
         start_time = current_time()
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" <-- "+floating_filename)
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" <-- "+floating_filename)
         vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
         vectorfield_transformations[(floating_filename,reference_filename)] = legacy_imread(vector_field_file)
-        logging.info("".join(["  " for l in xrange(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" <-- "+floating_filename+" ["+str(current_time()-start_time)+" s]")
+        logging.info("".join(["  " for l in range(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" <-- "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
         start_time = current_time()
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" --> "+floating_filename)
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" --> "+floating_filename)
         invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
         vectorfield_transformations[(reference_filename,floating_filename)] = legacy_imread(invert_vector_field_file)
-        logging.info("".join(["  " for l in xrange(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" --> "+floating_filename+" ["+str(current_time()-start_time)+" s]")
+        logging.info("".join(["  " for l in range(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" --> "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
     return vectorfield_transformations
 
@@ -268,17 +268,17 @@ def load_sequence_wall_meshes(sequence_name, image_dirname, loglevel=0):
     wall_topomeshes = {}
     
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_walls.ply"):
             sequence_filenames += [filename]
 
     for i_file, filename in enumerate(sequence_filenames):
         start_time = current_time()
-        logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Loading wall mesh " + filename)
+        logging.info("".join(["  " for l in range(loglevel)]) + "--> Loading wall mesh " + filename)
         wall_filename = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_walls.ply"
         wall_topomeshes[filename] = read_ply_property_topomesh(wall_filename)
-        logging.info("".join(["  " for l in xrange(loglevel)]) + "<-- Loading wall mesh " + filename + " [" + str(current_time() - start_time) + " s]")
+        logging.info("".join(["  " for l in range(loglevel)]) + "<-- Loading wall mesh " + filename + " [" + str(current_time() - start_time) + " s]")
 
     return wall_topomeshes
 
@@ -287,14 +287,14 @@ def load_sequence_signal_wall_data(sequence_name, image_dirname, loglevel=0):
     wall_data = {}
 
     sequence_filenames = []
-    for time in xrange(max_time):
+    for time in range(max_time):
         filename = sequence_name+"_t"+str(time).zfill(2)
         wall_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_walls.csv"])
         if os.path.exists(wall_data_filename):
             sequence_filenames += [filename]
 
     if len(sequence_filenames)>0:
-        logging.info("".join(["  " for l in xrange(loglevel)])+"--> Loading sequence wall data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
+        logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence wall data "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
         for filename in sequence_filenames:
             wall_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_walls.csv"])
             df = pd.read_csv(wall_data_filename)
