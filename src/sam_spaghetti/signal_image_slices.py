@@ -2,16 +2,16 @@ import numpy as np
 import pandas as pd
 import scipy.ndimage as nd
 
-from scipy.misc import imsave as imsave2d
-
-from vplants.image.registration import pts2transfo
+from imageio import imsave as imsave2d
 
 from timagetk.components import SpatialImage
 from timagetk.io import imsave
 
+from timagetk.algorithms.trsf import allocate_c_bal_matrix, apply_trsf, create_trsf
+from timagetk.algorithms.reconstruction import pts2transfo
+
 from timagetk.wrapping.bal_trsf import TRSF_TYPE_DICT
 from timagetk.wrapping.bal_trsf import TRSF_UNIT_DICT
-from timagetk.algorithms.trsf import allocate_c_bal_matrix, apply_trsf, create_trsf
 
 from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal, nuclei_density_function
 
@@ -122,7 +122,7 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
     assert reference_name in signal_names
 
     if filenames is None:
-        filenames = np.sort(signal_images[reference_name].keys())
+        filenames = np.sort(list(signal_images[reference_name].keys()))
     
 
     if len(filenames)>0:
@@ -374,7 +374,7 @@ def sequence_image_primordium_slices(sequence_name, image_dirname, save_files=Fa
             image_slices[signal_name][primordium] = {}
 
     if filenames is None:
-        filenames = np.sort(aligned_images[reference_name].keys())
+        filenames = np.sort(list(aligned_images[reference_name].keys()))
 
     if len(filenames) > 0:
         file_times = np.array([int(f[-2:]) for f in filenames])
@@ -445,7 +445,7 @@ def sequence_signal_data_primordium_slices(sequence_name, image_dirname, filenam
     primordia_data = load_sequence_primordia_data(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel + 1)
 
     if filenames is None:
-        filenames = np.sort(signal_data.keys())
+        filenames = np.sort(list(signal_data.keys()))
 
     if len(filenames) > 0:
         file_times = np.array([int(f[-2:]) for f in filenames])

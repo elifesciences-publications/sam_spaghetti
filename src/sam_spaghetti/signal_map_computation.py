@@ -13,7 +13,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
     if filenames is None:
-        filenames = np.sort(signal_data.keys())
+        filenames = np.sort(list(signal_data.keys()))
 
     signal_maps = {}
 
@@ -58,7 +58,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
-    primordia_range = np.sort(primordia_signal_data.keys())
+    primordia_range = np.sort(list(primordia_signal_data.keys()))
 
     if filenames is None:
         filenames = np.sort(np.unique(np.concatenate([primordia_signal_data[p].keys() for p in primordia_range])))
@@ -76,7 +76,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
                 signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals and (not 'Normalized' in c)]
             # signal_names.remove(reference_name)
 
-        file_primordia = [[(p, f) for f in np.sort(primordia_signal_data[p].keys())] for p in np.sort(primordia_signal_data.keys())]
+        file_primordia = [[(p, f) for f in np.sort(list(primordia_signal_data[p].keys()))] for p in np.sort(list(primordia_signal_data.keys()))]
         file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
 
         for i_p, (primordium, filename) in enumerate(file_primordia):

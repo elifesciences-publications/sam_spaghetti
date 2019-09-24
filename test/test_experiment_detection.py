@@ -117,14 +117,6 @@ class TestExperimentDetection(unittest.TestCase):
 
                     img_dict = dict(zip(channel_names,[sequence_dict[c][nomenclature_name] for c in channel_names]))
 
-                    # img_dict = load_image_from_microscopy(microscopy_filename,
-                    #                                       save_images=False,
-                    #                                       image_dirname=self.image_dirname,
-                    #                                       nomenclature_name=nomenclature_name,
-                    #                                       channel_names=channel_names,
-                    #                                       verbose=True,
-                    #                                       loglevel=1)
-
                     detect_and_quantify(img_dict,
                                         reference_name=reference_name,
                                         signal_names=channel_names,

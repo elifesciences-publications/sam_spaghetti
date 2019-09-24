@@ -8,8 +8,9 @@ import numpy as np
 from time import time as current_time
 
 from imageio import imread as imread2d
-# from vplants.image.serial.all import imread as legacy_imread
 from timagetk.io import imread
+from timagetk.io import read_trsf
+
 from cellcomplex.property_topomesh.io import read_ply_property_topomesh
 
 from sam_spaghetti.utils.signal_luts import vector_signals, tensor_signals
@@ -251,13 +252,13 @@ def load_sequence_vectorfield_transformations(sequence_name, image_dirname, verb
         start_time = current_time()
         logging.info("".join(["  " for l in range(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" <-- "+floating_filename)
         vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
-        vectorfield_transformations[(floating_filename,reference_filename)] = legacy_imread(vector_field_file)
+        vectorfield_transformations[(floating_filename,reference_filename)] = read_trsf(vector_field_file)
         logging.info("".join(["  " for l in range(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" <-- "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
         start_time = current_time()
         logging.info("".join(["  " for l in range(loglevel)])+"--> Loading vectorfield transform "+reference_filename+" --> "+floating_filename)
         invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
-        vectorfield_transformations[(reference_filename,floating_filename)] = legacy_imread(invert_vector_field_file)
+        vectorfield_transformations[(reference_filename,floating_filename)] = read_trsf(invert_vector_field_file)
         logging.info("".join(["  " for l in range(loglevel)])+"<-- Loading vectorfield transform "+reference_filename+" --> "+floating_filename+" ["+str(current_time()-start_time)+" s]")
 
     return vectorfield_transformations

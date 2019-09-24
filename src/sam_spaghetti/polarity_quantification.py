@@ -51,7 +51,7 @@ def extract_sequence_walls(sequence_name, save_files=True, image_dirname=None, m
 
     reference_images = load_sequence_signal_images(sequence_name,image_dirname,signal_names=[membrane_name])[membrane_name]
     segmented_images = load_sequence_segmented_images(sequence_name,image_dirname)
-    filenames = np.sort(segmented_images.keys())
+    filenames = np.sort(list(segmented_images.keys()))
 
     wall_topomeshes = {}
     for i_file, filename in enumerate(filenames):
@@ -80,7 +80,7 @@ def compute_sequence_wall_polarities(sequence_name, save_files=True, image_dirna
     sequence_cell_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, nuclei=False, loglevel=loglevel+1)
     wall_topomeshes = load_sequence_wall_meshes(sequence_name, image_dirname, loglevel=loglevel+1)
 
-    filenames = np.sort(wall_topomeshes.keys())
+    filenames = np.sort(list(wall_topomeshes.keys()))
 
     sequence_wall_data = {}
 

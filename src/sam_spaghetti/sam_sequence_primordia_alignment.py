@@ -206,7 +206,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     sequence_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=False, verbose=verbose, debug=debug, loglevel=loglevel)
     sequence_rigid_transforms = load_sequence_rigid_transformations(sequence_name, image_dirname, verbose=verbose, debug=debug, loglevel=loglevel)
 
-    filenames = np.sort(sequence_data.keys())
+    filenames = np.sort(list(sequence_data.keys()))
     for i_file, filename in enumerate(filenames):
         sequence_data[filename] = sequence_data[filename][sequence_data[filename]['layer']==1]
 
@@ -420,7 +420,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
 
     sequence_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=verbose, debug=debug, loglevel=loglevel)
     
-    filenames = np.sort(sequence_data.keys())
+    filenames = np.sort(list(sequence_data.keys()))
     for i_file, filename in enumerate(filenames):
         sequence_data[filename] = sequence_data[filename][sequence_data[filename]['layer']==1]
 

@@ -144,7 +144,6 @@ def compile_primordia_data(experiments, image_dirname, data_dirname=None, save_f
                     if compute_surface_distance:
                         surface_distances = []
                         for x,y in zip(X,Y):
-                            print x,y
                             radial_x = np.linspace(0,1,101)*x
                             radial_y = np.linspace(0,1,101)*y
                             radial_z = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([radial_x,radial_y]),Z)

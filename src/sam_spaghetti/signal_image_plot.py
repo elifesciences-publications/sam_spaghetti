@@ -82,7 +82,7 @@ def signal_image_plot(image_slices, figure=None, signal_names=None, filenames=No
     assert reference_name in signal_names
 
     if filenames is None:
-        filenames = np.sort(image_slices[reference_name].keys())
+        filenames = np.sort(list(image_slices[reference_name].keys()))
     
 
     if len(filenames)>0:
@@ -178,7 +178,7 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
     assert primordium in image_primordia_slices[reference_name].keys()
 
     if filenames is None:
-        filenames = np.sort(image_primordia_slices[reference_name][primordium].keys())
+        filenames = np.sort(list(image_primordia_slices[reference_name][primordium].keys()))
 
     if len(filenames) > 0:
         file_times = np.array([int(f[-2:]) for f in filenames])
@@ -270,7 +270,7 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
     if len(filenames) > 0:
         file_times = np.array([int(f[-2:]) for f in filenames])
 
-        file_primordia = [[(p,f) for f in np.sort(image_primordia_slices[reference_name][p].keys())] for p in np.sort(image_primordia_slices[reference_name].keys())]
+        file_primordia = [[(p,f) for f in np.sort(list(image_primordia_slices[reference_name][p].keys()))] for p in np.sort(list(image_primordia_slices[reference_name].keys()))]
         file_primordia = np.concatenate([p for p in file_primordia if len(p)>0])
 
         image_views = {}
@@ -355,7 +355,7 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
     
     if filenames is None:
-        filenames = np.sort(signal_data.keys())
+        filenames = np.sort(list(signal_data.keys()))
 
     if len(filenames)>0:
         
@@ -475,7 +475,7 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
 
 def signal_nuclei_all_primordia_plot(primordia_signal_data, figure=None, signal_names=None, filenames=None, normalized=True, reference_name='TagBFP', r_max=60., microscope_orientation=-1, markersize=480., alpha=1., verbose=False, debug=False, loglevel=0):
 
-    primordia_range = np.sort(primordia_signal_data.keys())
+    primordia_range = np.sort(list(primordia_signal_data.keys()))
 
     if filenames is None:
         filenames = np.sort(np.unique(np.concatenate([primordia_signal_data[p].keys() for p in primordia_range])))
@@ -495,7 +495,7 @@ def signal_nuclei_all_primordia_plot(primordia_signal_data, figure=None, signal_
         signal_names = [c for c in signal_names if c in signal_colormaps]
         signal_names = [c for c in signal_names if c in signal_lut_ranges]
 
-        file_primordia = [[(p, f) for f in np.sort(primordia_signal_data[p].keys()) if (f in filenames) and ("t00" in f) and (p>-2)] for p in np.sort(primordia_signal_data.keys())]
+        file_primordia = [[(p, f) for f in np.sort(list(primordia_signal_data[p].keys())) if (f in filenames) and ("t00" in f) and (p>-2)] for p in np.sort(list(primordia_signal_data.keys()))]
         # file_primordia = [[(str(p), f) for f in np.sort([f for primordium,f in primordia_signal_data.keys() if (primordium==str(p)) and (f in filenames) and ("t00" in f) and (p>-2)]) ] for p in primordia_range]
         file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
 
@@ -552,7 +552,7 @@ def signal_wall_plot(wall_topomeshes, figure=None, signal_names=None, filenames=
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
     
     if filenames is None:
-        filenames = np.sort(wall_topomeshes.keys())
+        filenames = np.sort(list(wall_topomeshes.keys()))
 
     if len(filenames)>0:
         
@@ -630,7 +630,7 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
     
     if filenames is None:
-        filenames = np.sort(signal_maps.keys())
+        filenames = np.sort(list(signal_maps.keys()))
 
     if figure is None:
         figure = plt.figure(0)

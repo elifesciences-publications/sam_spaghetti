@@ -2,8 +2,8 @@ import numpy as np
 from scipy import ndimage as nd
 import pandas as pd
 
-from vplants.image.serial.all import imsave as legacy_imsave
-from vplants.image.spatial_image import SpatialImage
+from timagetk.components import SpatialImage
+from timagetk.io import imsave, save_trsf
 
 from tissue_nukem_3d.growth_estimation import image_sequence_rigid_vectorfield_registration, apply_sequence_point_registration
 
@@ -30,7 +30,7 @@ def register_sequence_images(sequence_name, save_files=True, image_dirname=None,
         save_files = False
 
     reference_images = load_sequence_signal_images(sequence_name,image_dirname,signal_names=[reference_name])[reference_name]
-    filenames = np.sort(reference_images.keys())
+    filenames = np.sort(list(reference_images.keys()))
 
     transformed_images, rigid_transformations, vectorfield_transformations = image_sequence_rigid_vectorfield_registration(reference_images,microscope_orientation=microscope_orientation,verbose=verbose,debug=debug,loglevel=loglevel)
 
@@ -49,10 +49,13 @@ def register_sequence_images(sequence_name, save_files=True, image_dirname=None,
             start_time = current_time()
             logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving vectorfield transformations")
             vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
-            imsave(vector_field_file,SpatialImage(vectorfield_transformations[(floating_filename,reference_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
-            
+            # imsave(vector_field_file,SpatialImage(vectorfield_transformations[(floating_filename,reference_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
+            save_trsf(vectorfield_transformations[(floating_filename,reference_filename)],vector_field_file)
+
             invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
-            imsave(invert_vector_field_file,SpatialImage(vectorfield_transformations[(reference_filename,floating_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
+            # imsave(invert_vector_field_file,SpatialImage(vectorfield_transformations[(reference_filename,floating_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
+            save_trsf(vectorfield_transformations[(reference_filename,floating_filename)], invert_vector_field_file)
+
             logging.info("".join(["  " for l in range(loglevel)])+"  <-- Saving vectorfield transformations ["+str(current_time()-start_time)+" s]")
 
     result = (transformed_images, rigid_transformations, vectorfield_transformations)
@@ -70,7 +73,7 @@ def apply_sequence_registration(sequence_name, save_files=True, image_dirname=No
     if len(segmented_images)>0:
         signal_images[membrane_name+"_seg"] = segmented_images
         
-    filenames = np.sort(signal_images[reference_name].keys())
+    filenames = np.sort(list(signal_images[reference_name].keys()))
 
     registered_images = {}
     for signal_name in signal_images.keys():
