@@ -8,10 +8,9 @@ import pandas as pd
 from timagetk.io import imsave
 
 import sam_spaghetti
-from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data, load_sequence_filenames
-from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_experiment_microscope_orientation
-from sam_spaghetti.sequence_image_registration import register_sequence_images, apply_sequence_registration
-from sam_spaghetti.signal_data_compilation import compile_signal_data
+from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_data
+from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_experiment_microscope_orientation, get_sequence_orientation
+from sam_spaghetti.sam_sequence_primordia_alignment import align_sam_sequence, detect_organ_primordia
 
 dirname = os.path.abspath(sam_spaghetti.__path__[0] + "/../../share/data")
 test_dirname = os.path.abspath(sam_spaghetti.__path__[0] + "/../../test")
@@ -20,7 +19,7 @@ max_sam_id = 100
 max_time = 100
 
 
-class TestExperimentRegistration(unittest.TestCase):
+class TestExperimentPrimordiaAlignment(unittest.TestCase):
 
     def setUp(self):
         self.data_dirname = dirname
@@ -86,45 +85,30 @@ class TestExperimentRegistration(unittest.TestCase):
         if os.path.exists(self.test_image_dirname):
             os.removedirs(self.test_image_dirname)
 
-    def test_registration(self):
+    def test_primordia_alignment(self):
+
+        sequence_aligned_signal_data = {}
+        sequence_primordia_signal_data = {}
+        sequence_aligned_signal_maps = {}
+        sequence_primordia_signal_maps = {}
         for exp in self.experiments:
-            experiment_name = get_experiment_name(exp, self.data_dirname)
+            sequence_aligned_signal_data[exp] = {}
+            sequence_primordia_signal_data[exp] = {}
+            sequence_aligned_signal_maps[exp] = {}
+            sequence_primordia_signal_maps[exp] = {}
+            for sequence_name in self.sequence_names[exp]:
+                logging.info("--> Sequence primordia alignment " + sequence_name)
+                sam_orientation = get_sequence_orientation(sequence_name, self.data_dirname)
 
-            compile_signal_data(self.experiments,
-                                save_files=True,
-                                image_dirname=self.test_image_dirname,
-                                data_dirname=self.data_dirname,
-                                verbose=True, loglevel=1)
+                align_sam_sequence(sequence_name,
+                                   image_dirname = self.image_dirname,
+                                   sam_orientation=sam_orientation,
+                                   save_files=True,
+                                   verbose=True, loglevel=1)
 
-            for exp in self.experiments:
-                reference_name = get_experiment_reference(exp, self.data_dirname)
-                microscope_orientation = get_experiment_microscope_orientation(exp, self.data_dirname)
-                for sequence_name in self.sequence_names[exp]:
-                    logging.info("--> Sequence image registration " + sequence_name)
-
-                    register_sequence_images(sequence_name,
-                                             microscope_orientation=microscope_orientation,
-                                             save_files=True,
-                                             image_dirname=self.test_image_dirname,
-                                             reference_name=reference_name,
-                                             verbose=True, loglevel=1)
-
-                    sequence_filenames = load_sequence_filenames(sequence_name, image_dirname=self.test_image_dirname)
-                    for filename, registered_filename in zip(sequence_filenames[:-1],sequence_filenames[1:]):
-                        file_dirname = self.test_image_dirname + "/" + sequence_name + "/" + filename
-                        assert(os.path.exists(file_dirname+"/"+filename + "_to_" + registered_filename[-3:] + "_rigid_transform.csv"))
-                        assert(os.path.exists(file_dirname+"/"+filename + "_to_" + registered_filename[-3:] + "_vector_field.inr.gz"))
-
-                    apply_sequence_registration(sequence_name,
-                                                microscope_orientation=microscope_orientation,
-                                                save_files=True,
-                                                image_dirname=self.test_image_dirname,
-                                                reference_name=reference_name,
-                                                verbose=True, loglevel=1)
-
-                    for filename in sequence_filenames:
-                        file_dirname = self.test_image_dirname + "/" + sequence_name + "/" + filename
-                        signal_df = pd.read_csv(file_dirname + "/" + filename + "_normalized_signal_data.csv")
-                        assert len(signal_df) > 0
-                        assert np.all(["registered_"+dim in signal_df.columns for dim in ['x','y','z']])
+                detect_organ_primordia(sequence_name,
+                                       image_dirname = self.image_dirname,
+                                       sam_orientation=sam_orientation,
+                                       save_files=True,
+                                       verbose=True, loglevel=1)
 

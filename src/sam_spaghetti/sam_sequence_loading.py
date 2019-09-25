@@ -18,17 +18,22 @@ from sam_spaghetti.utils.signal_luts import vector_signals, tensor_signals
 max_time = 100
 
 
+def load_sequence_filenames(sequence_name, image_dirname, verbose=False, debug=False, loglevel=0):
+    sequence_filenames = []
+    for time in range(max_time):
+        filename = sequence_name+"_t"+str(time).zfill(2)
+        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
+            sequence_filenames += [filename]
+    return sequence_filenames
+
+
 def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None, raw=True, registered=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
     signal_images = {}
 
-    sequence_filenames = []
-    for time in range(max_time):
-        filename = sequence_name+"_t"+str(time).zfill(2)
-        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
-            sequence_filenames += [filename]
+    sequence_filenames = load_sequence_filenames(sequence_name, image_dirname=image_dirname)
 
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))
@@ -81,11 +86,7 @@ def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='
 
     segmented_images = {}
 
-    sequence_filenames = []
-    for time in range(max_time):
-        filename = sequence_name+"_t"+str(time).zfill(2)
-        if os.path.exists(image_dirname+"/"+sequence_name+"/"+filename):
-            sequence_filenames += [filename]
+    sequence_filenames = load_sequence_filenames(sequence_name, image_dirname=image_dirname)
 
     if len(sequence_filenames)>0:
         logging.info("".join(["  " for l in range(loglevel)])+"--> Loading sequence segmented images "+sequence_name+" : "+str([f[-3:] for f in sequence_filenames]))

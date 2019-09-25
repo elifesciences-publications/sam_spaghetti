@@ -68,5 +68,8 @@ def get_sequence_orientation(sequence_name, dirname=sam_spaghetti_dirname):
     orientation_data = pd.read_csv(orientation_file,sep=",")
     if not 'sequence_name' in orientation_data.columns:
         orientation_data = pd.read_csv(orientation_file,sep=";")
-    meristem_orientation = int(orientation_data[orientation_data['sequence_name']==sequence_name]['orientation'])
-    return meristem_orientation
+    if sequence_name in orientation_data['sequence_name'].values:
+        meristem_orientation = int(orientation_data[orientation_data['sequence_name']==sequence_name]['orientation'])
+        return meristem_orientation
+    else:
+        raise(KeyError("No SAM orientation information could be found for sequence "+str(sequence_name)))
