@@ -7,7 +7,7 @@ source:
   git_tag: develop
 
 build:
-  number: {{ GIT_DESCRIBE_NUMBER }}
+  number: 1
   preserve_egg_dir: True
 
 requirements:
