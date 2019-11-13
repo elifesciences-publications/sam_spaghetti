@@ -45,7 +45,7 @@ setup_kwds = dict(
 # #}
 # change setup_kwds below before the next pkglts tag
 
-#setup_kwds['entry_points']["scripts"] = ["sam_experiment_detect = scripts/sam_experiment_detect_quantify_and_align.py"]
+setup_kwds['entry_points']['console_scripts'] = ["sam_experiment_detect_quantify_and_align = sam_spaghetti.scripts.sam_experiment_detect_quantify_and_align:main"]
 
 # do not change things below
 # {# pkglts, pysetup.call
