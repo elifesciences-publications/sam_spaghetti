@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from vplants.tissue_nukem_3d.signal_map import SignalMap
+from tissue_nukem_3d.signal_map import SignalMap
 
 from sam_spaghetti.utils.signal_luts import quantified_signals
 
@@ -13,7 +13,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
     if filenames is None:
-        filenames = np.sort(signal_data.keys())
+        filenames = np.sort(list(signal_data.keys()))
 
     signal_maps = {}
 
@@ -32,7 +32,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
         for i_time, (time, filename) in enumerate(zip(file_times, filenames)):
             file_data = signal_data[filename]
             file_data = file_data[file_data['layer'] == 1]
-            logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Computing signal maps for " + filename)
+            logging.info("".join(["  " for l in range(loglevel)]) + "--> Computing signal maps for " + filename)
 
             if aligned:
                 position_name = 'aligned'
@@ -47,7 +47,7 @@ def compute_signal_maps(signal_data, signal_names=None, filenames=None, normaliz
             signal_map = SignalMap(file_data, position_name=position_name, extent=r_max, origin=center, polar=polar, radius=cell_radius, density_k=density_k)
             for signal_name in signal_names:
                 signal_map.compute_signal_map(signal_name)
-                logging.info("  ".join(["  " for l in xrange(loglevel)]) + "--> Computing "+signal_name+" map for " + filename)
+                logging.info("  ".join(["  " for l in range(loglevel)]) + "--> Computing "+signal_name+" map for " + filename)
 
             signal_maps[filename] = signal_map
 
@@ -58,7 +58,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
 
-    primordia_range = np.sort(primordia_signal_data.keys())
+    primordia_range = np.sort(list(primordia_signal_data.keys()))
 
     if filenames is None:
         filenames = np.sort(np.unique(np.concatenate([primordia_signal_data[p].keys() for p in primordia_range])))
@@ -76,7 +76,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
                 signal_names = [c for c in primordia_signal_data.values()[0].values()[0].columns if c in quantified_signals and (not 'Normalized' in c)]
             # signal_names.remove(reference_name)
 
-        file_primordia = [[(p, f) for f in np.sort(primordia_signal_data[p].keys())] for p in np.sort(primordia_signal_data.keys())]
+        file_primordia = [[(p, f) for f in np.sort(list(primordia_signal_data[p].keys()))] for p in np.sort(list(primordia_signal_data.keys()))]
         file_primordia = np.concatenate([p for p in file_primordia if len(p) > 0])
 
         for i_p, (primordium, filename) in enumerate(file_primordia):
@@ -84,7 +84,7 @@ def compute_primordia_signal_maps(primordia_signal_data, signal_names=None, file
                 file_primordium_data = primordia_signal_data[int(primordium)][filename]
                 time = file_times[filenames == filename][0]
                 i_time = np.arange(len(filenames))[filenames == filename][0]
-                logging.info("".join(["  " for l in xrange(loglevel)]) + "--> Computing P"+str(primordium)+" signal maps for " + filename)
+                logging.info("".join(["  " for l in range(loglevel)]) + "--> Computing P"+str(primordium)+" signal maps for " + filename)
 
                 file_primordium_data['slice_x'] = file_primordium_data['radial_distance'].values
                 file_primordium_data['slice_y'] = file_primordium_data['aligned_z'].values

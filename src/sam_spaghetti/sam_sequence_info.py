@@ -27,6 +27,14 @@ def get_experiment_channels(exp, dirname=sam_spaghetti_dirname):
     channels = experiment_channels.get(exp)
     return eval(channels) if channels != "" else None
 
+def get_experiment_signals(exp, dirname=sam_spaghetti_dirname):
+    experiment_file = dirname+"/experiment_info.csv"
+    experiment_data = pd.read_csv(experiment_file,sep=';')
+    experiment_data = experiment_data.replace(np.nan,"")
+    experiment_signals = dict(zip(experiment_data['experiment'],experiment_data['signal_names']))
+    signals = experiment_signals.get(exp)
+    return eval(signals) if signals != "" else None
+
 def get_experiment_reference(exp, dirname=sam_spaghetti_dirname):
     experiment_file = dirname+"/experiment_info.csv"
     experiment_data = pd.read_csv(experiment_file,sep=';')
@@ -60,5 +68,8 @@ def get_sequence_orientation(sequence_name, dirname=sam_spaghetti_dirname):
     orientation_data = pd.read_csv(orientation_file,sep=",")
     if not 'sequence_name' in orientation_data.columns:
         orientation_data = pd.read_csv(orientation_file,sep=";")
-    meristem_orientation = int(orientation_data[orientation_data['sequence_name']==sequence_name]['orientation'])
-    return meristem_orientation
+    if sequence_name in orientation_data['sequence_name'].values:
+        meristem_orientation = int(orientation_data[orientation_data['sequence_name']==sequence_name]['orientation'])
+        return meristem_orientation
+    else:
+        raise(KeyError("No SAM orientation information could be found for sequence "+str(sequence_name)))

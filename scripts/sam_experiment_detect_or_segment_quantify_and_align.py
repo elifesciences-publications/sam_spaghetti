@@ -6,6 +6,7 @@ from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
 from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, get_experiment_microscope_orientation
 from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
+from sam_spaghetti.segmentation_quantification import segment_and_quantify
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
 from sam_spaghetti.signal_image_plot import signal_image_plot, signal_nuclei_plot, signal_map_plot, signal_image_all_primordia_plot, signal_nuclei_all_primordia_plot, signal_map_all_primordia_plot
 from sam_spaghetti.signal_map_computation import compute_signal_maps, compute_primordia_signal_maps, compute_average_signal_maps, compute_average_primordia_signal_maps
@@ -48,6 +49,7 @@ def main():
     parser.add_argument('-Mdir', '--microscopy-directory', help='Path to CZI image directory [default : data_directory/microscopy]', default=None)
     parser.add_argument('-o', '--output-directory', help='Path to detected nuclei directory [default : data_directory/nuclei_images]', default=None)
     parser.add_argument('-D', '--detection', default=False, action='store_true', help='Run nuclei detection on all experiments')
+    parser.add_argument('-S', '--segmentation', default=False, action='store_true', help='Run membrane segmentation on all experiments')
     parser.add_argument('-s', '--save-channels', default=False, action='store_true', help='Save INR image files for each microscopy image channel')
     parser.add_argument('-R', '--registration', default=False, action='store_true', help='Run sequence image registration on all experiments')
     parser.add_argument('-i', '--image-plot', default=[], nargs='+', help='List of image projections types to plot',choices=plot_choices)
@@ -85,7 +87,7 @@ def main():
             logging.error("Experiment identifier \""+exp+"\" not recognized (consider adding it to the experiment_info.csv file in the data directory)")
             experiments.remove(exp)
         else:
-            if args.detection and (microscopy_dirname is not None):
+            if (args.detection or args.segmentation) and (microscopy_dirname is not None):
                 experiment_dirname = microscopy_dirname+"/"+get_experiment_microscopy(exp,data_dirname)
                 if os.path.exists(experiment_dirname+"/RAW"):
                     experiment_dirname += "/RAW"
@@ -100,6 +102,8 @@ def main():
                     is_not_processed = dict(zip(nomenclature_names, [False for f in nomenclature_names]))
                     if args.detection:
                         is_not_processed = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_signal_data.csv") for filename in nomenclature_names]))
+                    elif args.segmentation:
+                        is_not_processed = dict(zip(nomenclature_names,[not os.path.exists(image_dirname+"/"+filename[:-4]+"/"+filename+"/"+filename+"_cell_data.csv") for filename in nomenclature_names]))
 
                     channel_names = get_experiment_channels(exp, data_dirname)
                     reference_name = get_experiment_reference(exp, data_dirname)
@@ -118,7 +122,11 @@ def main():
                             if not os.path.exists(image_dirname+"/"+sequence_name+"/"+nomenclature_name):
                                 os.makedirs(image_dirname+"/"+sequence_name+"/"+nomenclature_name)
 
-                            if args.detection or is_not_processed[nomenclature_name]:
+                            if args.segmentation:
+                                logging.error("--> Running segmentation on "+nomenclature_name)
+                                img_dict = load_image_from_microscopy(microscopy_filename, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, verbose=args.verbose, debug=args.debug, loglevel=1)
+                                segment_and_quantify(img_dict,image_dirname=image_dirname, nomenclature_name=nomenclature_name, verbose=args.verbose, debug=args.debug, loglevel=1)
+                            elif args.detection or is_not_processed[nomenclature_name]:
                                 logging.info("--> Running detection on "+nomenclature_name+" "+reference_name)
                                 img_dict = load_image_from_microscopy(microscopy_filename, save_images=args.save_channels, image_dirname=image_dirname, nomenclature_name=nomenclature_name, channel_names=channel_names, verbose=args.verbose, debug=args.debug, loglevel=1)
                                 detect_and_quantify(img_dict, reference_name=reference_name, signal_names=channel_names, image_dirname=image_dirname, nomenclature_name=nomenclature_name, verbose=args.verbose, debug=args.debug, loglevel=1)
@@ -157,7 +165,7 @@ def main():
                 if 'sequence_raw' in args.nuclei_plot:
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     signal_images = load_sequence_signal_images(sequence_name, image_dirname, signal_names=[reference_name], verbose=args.verbose, debug=args.debug, loglevel=1)
-                    r_max = list(signal_images[reference_name].values())[0].shape[0]*list(signal_images[reference_name].values())[0].voxelsize[0]/2.
+                    r_max = signal_images[reference_name].values()[0].shape[0]*signal_images[reference_name].values()[0].voxelsize[0]/2.
                     logging.info("--> Plotting detected nuclei signals "+sequence_name)
                     figure = signal_nuclei_plot(signal_data, r_max=r_max, normalized=args.normalized, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_L1_nuclei_signals.png")
@@ -171,10 +179,6 @@ def main():
                         signal_image_slices = sequence_signal_image_slices(sequence_name, image_dirname, reference_name=reference_name, microscope_orientation=microscope_orientation, projection_type=args.projection_type, resolution=None, aligned=False, save_files=True, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure = signal_image_plot(signal_image_slices, reference_name=reference_name, projection_type=args.projection_type, resolution=0.25, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
                     figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_"+args.projection_type+"_signals.png")
-
-        if args.data_compilation:
-            logging.info("--> Compiling signal data from all experiments " + str(experiments))
-            compile_signal_data(experiments, save_files=True, image_dirname=image_dirname, data_dirname=data_dirname, verbose=args.verbose, debug=args.debug, loglevel=1)
 
         for exp in experiments:
             reference_name = get_experiment_reference(exp, data_dirname)

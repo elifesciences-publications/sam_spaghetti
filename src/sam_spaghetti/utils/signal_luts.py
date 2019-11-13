@@ -67,7 +67,7 @@ for cmap_name in colormaps:
     cmap = colormaps[cmap_name]
 
     color_dict = dict(red=[],green=[],blue=[])
-    for p in np.sort(cmap._color_points.keys()):
+    for p in np.sort(list(cmap._color_points.keys())):
         for k,c in enumerate(['red','green','blue']):
             color_dict[c] += [(p,cmap._color_points[p][k],cmap._color_points[p][k])]
     for c in ['red','green','blue']:
@@ -75,7 +75,7 @@ for cmap_name in colormaps:
     cm.register_cmap(cmap_name,mpl.colors.LinearSegmentedColormap(cmap.name, color_dict))
 
     color_dict = dict(red=[],green=[],blue=[])
-    for p in np.sort(cmap._color_points.keys()):
+    for p in np.sort(list(cmap._color_points.keys())):
         for k,c in enumerate(['red','green','blue']):
             color_dict[c] = [(1-p,cmap._color_points[p][k],cmap._color_points[p][k])] + color_dict[c]
     for c in ['red','green','blue']:
@@ -108,6 +108,8 @@ quantified_signals += ['previous_volulmetric_growth_anisotropy']
 vector_signals = []
 vector_signals += ['next_main_growth_direction']
 vector_signals += ['previous_main_growth_direction']
+vector_signals += ['PIN1_polarity_vector']
+vector_signals += ['PI_polarity_vector']
 
 tensor_signals = []
 tensor_signals += ['next_strain_tensor']
@@ -171,7 +173,8 @@ signal_lut_ranges['CLV3'] = (0,40000)
 signal_lut_ranges['DIIV'] = (0,15000)
 signal_lut_ranges['Normalized_DIIV'] = (0,1)
 signal_lut_ranges['qDII'] = (0,0.3)
-signal_lut_ranges['Normalized_qDII'] = (-0.5,1)
+# signal_lut_ranges['Normalized_qDII'] = (-0.5,1)
+signal_lut_ranges['Normalized_qDII'] = (0.,1.5)
 # signal_lut_ranges['Auxin'] = (0.6,1.)
 signal_lut_ranges['Auxin'] = (0.,1.)
 signal_lut_ranges['Normalized_Auxin'] = (0.,1.)
@@ -212,7 +215,8 @@ signal_colormaps['qDII'] = '1Flashy_green'
 signal_colormaps['RGAV'] = 'lemon_hot'
 signal_colormaps['qRGA'] = '1Flashy_purple'
 # signal_colormaps['Normalized_qDII'] = 'winter'
-signal_colormaps['Normalized_qDII'] = '1Flashy_green'
+# signal_colormaps['Normalized_qDII'] = '1Flashy_green'
+signal_colormaps['Normalized_qDII'] = 'lemon_hot'
 # signal_colormaps['Auxin'] = '1Flashy_green_r'
 signal_colormaps['Auxin'] = 'lemon_hot_r'
 # signal_colormaps['DR5'] = '1Flashy_orange'
@@ -242,8 +246,6 @@ signal_colormaps['previous_volumetric_growth'] = 'jet'
 signal_colormaps['next_volumetric_growth_anisotropy'] = 'YlOrRd'
 signal_colormaps['previous_volumetric_growth_anisotropy'] = 'YlOrRd'
 
-
-
 channel_colormaps = {}
 channel_colormaps['CLV3'] = 'Purples'
 channel_colormaps['DIIV'] = 'Greens'
@@ -272,3 +274,6 @@ contour_colormaps['DR5'] = '1Flashy_orange'
 contour_colormaps['gaussian_curvature'] = 'winter'
 contour_colormaps['next_relative_surfacic_growth'] = 'viridis'
 
+vector_signal_colors = {}
+vector_signal_colors['PIN1_polarity_vector'] = 'forestgreen'
+vector_signal_colors['PI_polarity_vector'] = 'grey'

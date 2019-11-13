@@ -67,7 +67,7 @@ def main():
             experiment_name = get_experiment_name(exp,data_dirname)
 
             sequence_signal_data[exp] = {}
-            for sam_id in xrange(max_sam_id):
+            for sam_id in range(max_sam_id):
                 if not sam_id in experiment_excluded_sams[exp]:
                     sequence_name = experiment_name+"_sam"+str(sam_id).zfill(2)
                     signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=False, aligned=False, verbose=args.verbose, debug=args.debug, loglevel=1)
