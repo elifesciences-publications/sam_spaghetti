@@ -1,0 +1,55 @@
+# This file is a template, and might need editing before it works on your project.
+# Full project: https://gitlab.com/pages/plain-html
+image: conda/miniconda3
+
+conda_build:
+  stage: build
+  script:
+    - conda update --all
+    - conda install conda-build git
+    - mkdir conda-bld
+    - conda build . --output-folder conda-bld/
+  artifacts:
+    paths:
+      - conda-bld
+  only:
+    - develop
+
+coverage:
+  stage: test
+  script:
+  - conda env create -f conda_recipes/env.yaml
+  - source activate sam_spaghetti
+  - python setup.py develop
+  - nosetests -v
+  only:
+  - develop
+ 
+anaconda:
+  stage: deploy
+  script:
+  - conda update --all
+  - conda install conda-build anaconda-client
+  - conda convert -p osx-64 conda-bld/linux-64/sam_spaghetti-* --output-dir conda-bld/
+  - anaconda --token=$ANACONDA_TOKEN --verbose upload conda-bld/linux-64/sam_spaghetti-* --user mosaic
+  - anaconda --token=$ANACONDA_TOKEN --verbose upload conda-bld/osx-64/sam_spaghetti-* --user mosaic
+  only:
+  - develop
+
+
+pages:
+  stage: deploy
+  script:
+  - conda update --all
+  - conda env create -f conda_recipes/env.yaml
+  - source activate sam_spaghetti
+  - python setup.py develop
+  - conda install sphinx make
+  - cd doc
+  - make html
+  - mv build/html ../public
+  artifacts:
+    paths:
+    - public
+  only:
+  - develop
