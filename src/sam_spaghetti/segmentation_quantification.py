@@ -153,31 +153,31 @@ def membrane_image_segmentation(img2seg, h_min, img2sub=None, iso=False, equaliz
     ori_vxs = img2seg.voxelsize
     ori_shape = img2seg.shape
     if equalize:
-        print "\n - Performing z-slices adaptative histogram equalisation on the intensity image to segment..."
+        # print "\n - Performing z-slices adaptative histogram equalisation on the intensity image to segment..."
         img2seg = z_slice_equalize_adapthist(img2seg)
     if stretch:
-        print "\n - Performing z-slices histogram contrast stretching on the intensity image to segment..."
+        # print "\n - Performing z-slices histogram contrast stretching on the intensity image to segment..."
         img2seg = z_slice_contrast_stretch(img2seg)
     if img2sub is not None:
-        print "\n - Performing signal substraction..."
+        # print "\n - Performing signal substraction..."
         img2seg = signal_subtraction(img2seg, img2sub)
 
-    print "\n - Automatic seed detection...".format(h_min)
+    # print "\n - Automatic seed detection...".format(h_min)
     # morpho_radius = 1.0
     # asf_img = morphology(img2seg, max_radius=morpho_radius, method='co_alternate_sequential_filter')
     # ext_img = h_transform(asf_img, h=h_min, method='min')
 
     voxelsize = np.array(ori_vxs)
-    print " -- Gaussian smoothing with sigma={}...".format(std_dev / voxelsize)
+    # print " -- Gaussian smoothing with sigma={}...".format(std_dev / voxelsize)
     smooth_image = nd.gaussian_filter(img2seg.get_array(), sigma=std_dev / voxelsize).astype(img2seg.get_array().dtype)
     smooth_img = SpatialImage(smooth_image, voxelsize=img2seg.voxelsize)
 
     if iso:
-        print " -- Isometric resampling..."
+        # print " -- Isometric resampling..."
         iso_img = isometric_resampling(img2seg)
         iso_smooth_img = isometric_resampling(smooth_img)
 
-    print " -- H-minima transform with h-min={}...".format(h_min)
+    # print " -- H-minima transform with h-min={}...".format(h_min)
     if to_8bits:
         ext_img = h_transform(smooth_img.to_8bits(), h=h_min, method='min')
     else:
@@ -185,12 +185,12 @@ def membrane_image_segmentation(img2seg, h_min, img2sub=None, iso=False, equaliz
     if iso:
         smooth_img = iso_smooth_img  # no need to keep both images after this step!
 
-    print " -- Region labelling: connexe components detection..."
+    # print " -- Region labelling: connexe components detection..."
     seed_img = region_labeling(ext_img, low_threshold=1, high_threshold=h_min, method='connected_components')
-    print "Detected {} seeds!".format(len(np.unique(seed_img)) - 1)  # '0' is in the list!
+    # print "Detected {} seeds!".format(len(np.unique(seed_img)) - 1)  # '0' is in the list!
     del ext_img  # no need to keep this image after this step!
 
-    print "\n - Performing seeded watershed segmentation..."
+    # print "\n - Performing seeded watershed segmentation..."
     if iso:
         seed_img = isometric_resampling(seed_img, option='label')
     if to_8bits:
@@ -198,22 +198,22 @@ def membrane_image_segmentation(img2seg, h_min, img2sub=None, iso=False, equaliz
     else:
         seg_im = segmentation(smooth_img, seed_img, method='seeded_watershed', try_plugin=False)
     # seg_im[seg_im == 0] = back_id
-    print "Detected {} labels!".format(len(np.unique(seg_im)))
+    # print "Detected {} labels!".format(len(np.unique(seg_im)))
 
     if min_cell_volume > 0.:
-        print "\n - Performing cell volume filtering..."
+        # print "\n - Performing cell volume filtering..."
         spia = SpatialImageAnalysis(seg_im, background=None)
         vol = spia.volume()
         too_small_labels = [k for k, v in vol.items() if v < min_cell_volume and k != 0]
         if too_small_labels != []:
-            print "Detected {} labels with a volume < {}µm2".format(len(too_small_labels), min_cell_volume)
-            print " -- Removing seeds leading to small cells..."
+            # print "Detected {} labels with a volume < {}µm2".format(len(too_small_labels), min_cell_volume)
+            # print " -- Removing seeds leading to small cells..."
             spia = SpatialImageAnalysis(seed_img, background=None)
             seed_img = spia.get_image_without_labels(too_small_labels)
-            print " -- Performing final seeded watershed segmentation..."
+            # print " -- Performing final seeded watershed segmentation..."
             seg_im = segmentation(smooth_img, seed_img, method='seeded_watershed', try_plugin=False)
             # seg_im[seg_im == 0] = back_id
-            print "Detected {} labels!".format(len(np.unique(seg_im)))
+            # print "Detected {} labels!".format(len(np.unique(seg_im)))
 
     if max_cell_volume is not None:
         seg_volumes = dict(zip(np.arange(seg_im.max()) + 1, nd.sum(np.prod(voxelsize) * np.ones_like(seg_im), seg_im, np.arange(seg_im.max()) + 1)))

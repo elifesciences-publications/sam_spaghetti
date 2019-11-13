@@ -159,6 +159,7 @@ def array_from_printed_string(string):
     else:
         return string
 
+
 def load_sequence_signal_data(sequence_name, image_dirname, nuclei=True, normalized=False, aligned=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)

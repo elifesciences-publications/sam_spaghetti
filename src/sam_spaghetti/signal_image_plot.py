@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import pandas as pd
 import scipy.ndimage as nd
 
@@ -17,8 +17,6 @@ from tissue_nukem_3d.signal_map_visualization import plot_signal_map, plot_tenso
 
 from tissue_paredes.utils.matplotlib_tools import mpl_draw_wall_lines
 
-import sam_spaghetti.utils.signal_luts
-reload(sam_spaghetti.utils.signal_luts)
 from sam_spaghetti.utils.signal_luts import signal_colormaps, signal_ranges, signal_lut_ranges, channel_colormaps, channel_ranges, quantified_signals, vector_signals, tensor_signals, vector_signal_colors
 
 from time import time as current_time
@@ -642,7 +640,7 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
         file_times = np.array([int(f[-2:]) for f in filenames])
 
         if signal_names is None:
-            signal_names = signal_maps.values()[0].signal_names()
+            signal_names = list(signal_maps.values())[0].signal_names()
         vector_names = [c for c in signal_names if c in vector_signals]
         tensor_names = [c for c in signal_names if c in tensor_signals]
 
