@@ -8,7 +8,7 @@ conda_build:
     - conda update --all
     - conda install conda-build git
     - mkdir conda-bld
-    - conda build . --output-folder conda-bld/
+    - conda build . -c mosaic --output-folder conda-bld/
   artifacts:
     paths:
       - conda-bld
