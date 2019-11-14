@@ -9,28 +9,28 @@ from setuptools import setup, find_packages
 
 short_descr = "SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation"
 readme = open('README.rst').read()
-history = open('HISTORY.rst').read().replace('.. :changelog:', '')
+history = open('HISTORY.rst').read()
 
+# find packages
+pkgs = find_packages('src')
 
-# find version number in src/sam_spaghetti/version.py
-version = {}
-with open("src/sam_spaghetti/version.py") as fp:
-    exec(fp.read(), version)
 
 
 setup_kwds = dict(
     name='sam_spaghetti',
-    version=version["__version__"],
+    version="0.1.0",
     description=short_descr,
     long_description=readme + '\n\n' + history,
-    author="Guillaume Cerutti, ",
-    author_email="guillaume.cerutti@inria.fr, ",
+    author="Guillaume Cerutti",
+    author_email="guillaume.cerutti@inria.fr",
     url='https://github.com/Guillaume Cerutti/sam_spaghetti',
     license='cecill-c',
     zip_safe=False,
 
-    packages=find_packages('src'),
+    packages=pkgs,
     package_dir={'': 'src'},
+    setup_requires=[
+        ],
     install_requires=[
         ],
     tests_require=[
@@ -40,8 +40,9 @@ setup_kwds = dict(
         ],
     entry_points={},
     keywords='',
+    
     test_suite='nose.collector',
-)
+    )
 # #}
 # change setup_kwds below before the next pkglts tag
 

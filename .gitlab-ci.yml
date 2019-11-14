@@ -18,10 +18,10 @@ conda_build:
 coverage:
   stage: test
   script:
-  - conda env create -f conda_recipes/env.yaml
-  - source activate sam_spaghetti
-  - python setup.py develop
-  - nosetests -v
+#  - conda env create -f conda_recipes/env.yaml
+#  - source activate sam_spaghetti
+#  - python setup.py develop
+#  - nosetests -v
   only:
   - develop
  

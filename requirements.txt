@@ -3,5 +3,20 @@
 # edit .pkglts/pkg_cfg instead
 # section pysetup
 
+# doc
+sphinx
+
+
+# dvlpt
+
+
+# install
+
+
+# test
+coverage
+mock
+nose
+
 
 # #}

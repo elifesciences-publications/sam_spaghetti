@@ -1,53 +1,78 @@
 {
   ".coveragerc": {
-    "coverage": "RFL4O0SU4iBE56RUV6eZu9POjuPinLPRzpM02oYy6WTkxH2Omsbo3COsogEt6EKKKPj8xCMXe6zonAlwRF1dCQ=="
-  }, 
+    "coverage": "702C+IrHaIRUNP8BpgqbDKiVofWnhvXIcmPdl7X3wdzRNJ5LumPnpn+YrMBJzH/x5sNU2/19EGkB/xfsOJln8g=="
+  },
   ".gitignore": {
     "github": "R7yc5iyeZDglqnFlZpCmdh0r/A1IBA6Az36VTJo4sokxk2U3OL6ogrsEXrZAcns607ASCD9apgl6dtsejObyVg=="
-  }, 
+  },
   "AUTHORS.rst": {
     "doc": "5tBxFHw4oYIQ21XcA+feMs0fKWaEt8WFAv1R7yzE447mnT1aac2bOedYrqgFjrPEKvrRBKOsixqqkhCJHjMuCA=="
-  }, 
-  "CONTRIBUTING.rst": {}, 
-  "HISTORY.rst": {}, 
+  },
+  "CONTRIBUTING.rst": {},
+  "HISTORY.rst": {},
   "LICENSE": {
-    "license": "21ExMhSzB2uXQuU1VoH7++nrb4u6TbesqGtJDpM39OLPWft9SJ2tJ956R6foYmkI9VuJay7SUrhFLPxxMEHLxg=="
-  }, 
+    "license": "RbGRVVjgGPhWaPWhqwtq7HHev/U1DkppBYjGN39HbDZ2BDejFc2exfwAH1MiY2HHn+3TgxlvBkg/s/x9hs3aOA=="
+  },
   "MANIFEST.in": {
-    "pysetup": "1FyTKjAmOPyPY+wrgNLWCTayScU99/wU8HDNfCq60bO5lNYxX0bI848EAU2MYpdgCMSGWcn4TXartht/bOyN7A=="
-  }, 
+    "pysetup": "+1LHo/hxvK1mnnJMWCG9skxnS4/jv1jS4FAnnIexNhqV/snCd7JpBGdo4gIDmooni2gVR2HFc+cfUb53KcI+dA=="
+  },
   "README.rst": {
-    "doc": "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="
-  }, 
-  "conda_sam_spaghetti/bld.bat": {}, 
-  "conda_sam_spaghetti/build.sh": {}, 
-  "conda_sam_spaghetti/meta.yaml": {}, 
-  "doc/_static/nonempty.txt": {}, 
-  "doc/authors.rst": {}, 
-  "doc/contributing.rst": {}, 
-  "doc/history.rst": {}, 
-  "doc/index.rst": {}, 
-  "doc/installation.rst": {}, 
-  "doc/readme.rst": {}, 
-  "doc/usage.rst": {}, 
+    "doc": "vmiIOMqGhuXJBom/KrWFzvETfJmbSMcLkvZ6XDTcFWl7XRHJgu1tcb4eHn97TgcziEqpfD96M5qO0DV3z3S+CQ=="
+  },
+  "conda/meta.yaml": {
+    "conda.about": "Yj1oGK61vWK1DJuphz2P3QJfBwBPK+mOn7wGTPAi02daQXtx6ZOBN2MnVxXlTa1I139bNIrFLSEtutQHSXK9tQ==",
+    "conda.package": "Wbd2L170HaZ/inea0Tmlwi6eLIEoUfdqlD53/6PJXEuLIs6WGChLZpF/+Q5YEqdC4xTAWuyKgcfDtuXUIAMdDg==",
+    "conda.req_build": "hIjD9BAES1YfVyySltMXBSOHF2TfGB/VcT1l5hK+UIc6n7rAf5wzHL7eRHGtMIfkEt1AEZArphrRaPQ+awD11g==",
+    "conda.req_run": "L/n+vX2vqwrNuXNKY2wODz9ptc9ukXoAX+ePlVpOwRJaXupNliGgruWUxgEbzucCwYfe0UWM/jX7n6n1/N3EuQ==",
+    "conda.src": "Lzbp176AVU0YantZQxB4LsR2jbxpZ/OlkvY2V4aWAEuzKEarh872uc1eRvsIYf/FsbxvcmUI84AezWlA72nI6A=="
+  },
+  "conda/requirements.yml": {
+    "conda": "8uMotJeVRvskdYFAV1WpkL/AaUIh3zUFrVXn3YBLS1XUD+q1Cqv4AsKLm3rXp5gd3jHFxF+kCXFJXV16r6hIdg=="
+  },
+  "conda/requirements_minimal.yml": {
+    "conda": "0BrEVFshaEe2QVffTlKXWFFS+GJAI9DTlh1NFzfcQzjHC0eGFH4TURSxqQhMVfJoHW/uSO9Pq2dvC/UHA/SSRw=="
+  },
+  "conda_sam_spaghetti/bld.bat": {},
+  "conda_sam_spaghetti/build.sh": {},
+  "conda_sam_spaghetti/meta.yaml": {},
+  "doc/Makefile": {
+    "sphinx": "EsaaEppe6Kw79WHpUyBigedrIraP6YlQDBg9Fu6jue32Rt6mCQkk2zH7gfOVqjT5bNpnXN90UfLkrzHVJCo6UQ=="
+  },
+  "doc/_static/nonempty.txt": {},
+  "doc/authors.rst": {},
+  "doc/conf.py": {
+    "sphinx": "I7dMMt9amD1KelB5KIKjrcjGZLVDYad1XXcx3MqSPR9r1tz/XVHmlYoa5G8iUunmy+zQHtmc6z/CICbm0jV50A=="
+  },
+  "doc/contributing.rst": {},
+  "doc/history.rst": {},
+  "doc/index.rst": {},
+  "doc/installation.rst": {},
+  "doc/make.bat": {
+    "sphinx": "E9sFsnXAm9uPYBn7f0Qb6edct0UKizsXRIJyjZISRCjHbT2HldXK4GIj1yO69R/OVSfnmdAX5lzXQ4wONQNFgA=="
+  },
+  "doc/readme.rst": {},
+  "doc/usage.rst": {},
   "dvlpt_requirements.txt": {
     "pysetup": "aVO6hP/4Hyw5sGttImkSwKrBtU022tMZDPHIRycpGP9VNAlCnu4KCMEVf2BOggXFFQLbzu/WT6ZAP9OdFJinbA=="
-  }, 
+  },
   "requirements.txt": {
-    "pysetup": "/5djJXLbrvuFk7LIgtfgYR8RnQrY5BEmOB4zEd0PrKeswR/8sQkzj4yKy7Zl3LAdRzYjPDhWiRkS1oMCG4FX7Q=="
-  }, 
+    "pysetup": "aDdS7ihG+Df/hmTbJTY0m++z+lbE6FEGG7eYumJTI8c1Z0ia5j1z6StaioSsJJmTd1ADCCeMGtZB6O10kbgQkA=="
+  },
+  "requirements_minimal.txt": {
+    "pysetup": "vmiIOMqGhuXJBom/KrWFzvETfJmbSMcLkvZ6XDTcFWl7XRHJgu1tcb4eHn97TgcziEqpfD96M5qO0DV3z3S+CQ=="
+  },
   "setup.cfg": {
     "pysetup": "EH++GocKLRbrwL8Ua+63FZ4Xa/2SNVtGFqJiZaPkX+/T+L6El6ASfdlEYcma0sUm0MOEbgX9BQSo0L/ilZdi8g=="
-  }, 
+  },
   "setup.py": {
-    "pysetup.call": "2wHuP94SpWKZpqOzExkQGTxnhGPgBHK3qOdPn0Ncstj5FkZ7FBGGM/inqAXaI4QLKQtTNlOUYRGSkYUWAUcf1w==", 
-    "pysetup.kwds": "5ntXy0upQviBcNkUbRK1W6JQnGi1XZBx2i4HUujNr7l0xw/v3vSrVMx9iGSzOnOSvXzbb41p/RRXLqPLpCSb3A=="
-  }, 
+    "pysetup.call": "t30iIuCMd/sWxStR2XNYb8bCBgwanhKt8YYn2VKACyAqL5cKFRUWpVRIpAR+uxXUZ9PYYy2csMmECcONnRZE8w==",
+    "pysetup.kwds": "UpmmAYg69Z+adbqFNI/JQO98rn6167O8dQJzh28JbDRXui323KxacgdQMeic6rTamC8raov8IRrrX2FwKLkwCg=="
+  },
   "src/sam_spaghetti/__init__.py": {
-    "base": "gR33dW0qqYmsV9NSNB+DD8XmuxnC2t0mKjnMoU5728qh97fSER6MbX+3QKxpZDLByZToaAay4xhx8acxketJmA=="
-  }, 
+    "base": "+GVGxVjJGifAp8dAR9V2W3aVPe7/D53bN7r0O5VxO9OUqG4vnGTZvnORu1objjjIwm86DgemQd7ax/IJpRa8Wg=="
+  },
   "src/sam_spaghetti/version.py": {
-    "version": "K+3dAFVYyR1elQoz21ZVBOrqgY0XrwPJadWEoPoYfnWMFnSK9FGP7Tgvsv96IzROU6RUINAea9kWp4aFPaJkAg=="
-  }, 
+    "version": "XWEqqZL60QELaVflJcV2g9swZiGpSJ/V+NyoUlW7/1k6q9EnI5U1PeuLRhjGAciBI1Z89apvk/OPqgp9BfLyyw=="
+  },
   "test/__init__.py": {}
 }
