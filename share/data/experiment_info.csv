@@ -1,0 +1,2 @@
+experiment;experiment_name;microscopy_directory;channel_names;reference_name
+SAM-TEST;qDII-CLV3-PIN1-LD-TEST;SAM-TEST;['DIIV','PIN1','PI','TagBFP','CLV3'];TagBFP
