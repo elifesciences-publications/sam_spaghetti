@@ -9,11 +9,11 @@ sam_spaghetti
 SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation
 
 :Author: Guillaume Cerutti
-:Contributors:  Christophe Godin, Jonathan Legrand, Carlos Galvan-Ampudia, Teva Veernoux
+:Contributors:  Christophe Godin, Jonathan Legrand, Carlos Galvan-Ampudia, Teva Vernoux
 
 :Team: Inria project team `Mosaic <https://team.inria.fr/mosaic/>`_, `RDP <http://www.ens-lyon.fr/RDP/>`_ Team Signal
 
-:Institutes: `Inria <http://www.inria.fr>`_, `INRA <https://inra.fr>`_,
+:Institutes: `Inria <http://www.inria.fr>`_, `INRA <https://inra.fr>`_
 
 :Language: Python
 
@@ -28,7 +28,7 @@ Requirements
 - timagetk (https://gitlab.inria.fr/mosaic/timagetk)
 - cellcomplex (https://gitlab.inria.fr/mosaic/cellcomplex)
 - tissue_nukem_3d (https://gitlab.inria.fr/mosaic/tissue_nukem_3d)
-- tissue_paredes
+- tissue_paredes (https://gitlab.inria.fr/mosaic/tissue_paredes)
 
 
 Usage
@@ -55,7 +55,6 @@ optional arguments:
   -h, --help            show help message and exit
   -e EXPERIMENTS, --experiments EXPERIMENTS
                         List of experiment identifiers
-                        
   -dir DATA_DIRECTORY, --data-directory DATA_DIRECTORY
                         Path to SAM sequence data files directory containing nomenclature.csv, experiment_info.csv, nuclei_image_sam_orientation.csv
   -M MICROSCOPY_DIRECTORY, --microscopy-directory MICROSCOPY_DIRECTORY
@@ -68,11 +67,9 @@ optional arguments:
   -s, --save-channels   Save INR image files for each microscopy image channel
   -R, --registration    Run sequence image registration on all experiments
   -i sequence_raw sequence_aligned, --image-plot sequence_raw sequence_aligned
-                        List of image projections types to plot
-                        ['sequence_raw', 'sequence_aligned']
+                        List of image projections types to plot ['sequence_raw', 'sequence_aligned']
   -p {max_intensity,L1_slice}, --projection-type {max_intensity,L1_slice}
-                        Projection type for the image plots ['max_intensity',
-                        'L1_slice']
+                        Projection type for the image plots ['max_intensity','L1_slice']
   -n {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...], --nuclei-plot {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]
                         List of signal map types to plot ['sequence_raw',
                         'sequence_aligned']
