@@ -8,24 +8,38 @@ sam_spaghetti
 
 SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation
 
------
+:Author: Guillaume Cerutti
+:Contributors:  Christophe Godin, Jonathan Legrand, Carlos Galvan-Ampudia, Teva Veernoux
+
+:Team: Inria project team `Mosaic <https://team.inria.fr/mosaic/>`_, `RDP <http://www.ens-lyon.fr/RDP/>`_ Team Signal
+
+:Institutes: `Inria <http://www.inria.fr>`_, `INRA <https://inra.fr>`_,
+
+:Language: Python
+
+:Supported OS: Linux, MacOS
+
+:Licence: `Cecill-C`
+
+
 Requirements
------
+------------
 
 - timagetk (https://gitlab.inria.fr/mosaic/timagetk)
 - cellcomplex (https://gitlab.inria.fr/mosaic/cellcomplex)
 - tissue_nukem_3d (https://gitlab.inria.fr/mosaic/tissue_nukem_3d)
+- tissue_paredes
 
------
+
 Usage
 -----
 
 Two scripts are provided in `scripts/` to perform complex computational analysis on CZI images of Shoot Apical Meristems (SAMs)
 
-Detection, quantification and alignment from CZI files (with optional visualization)
------
+- Detection, quantification and alignment from CZI files (with optional visualization)
 
-usage: sam_experiment_detect_quantify_and_align.py [-h] -e EXPERIMENTS
+
+usage: sam_experiment_detect_quantify_and_align [-h] -e EXPERIMENTS
                                                    [EXPERIMENTS ...]
                                                    [-dir DATA_DIRECTORY]
                                                    [-M MICROSCOPY_DIRECTORY]
@@ -76,8 +90,8 @@ optional arguments:
   -v, --verbose         Verbose
   -d, --debug           Debug
   
-  Image averaging 
-  -----
+
+- Image averaging
   
   usage: sam_experiment_image_projection_averaging.py [-h] -e EXPERIMENTS
                                                     [EXPERIMENTS ...]
