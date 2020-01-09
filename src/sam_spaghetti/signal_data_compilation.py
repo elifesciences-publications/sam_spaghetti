@@ -51,7 +51,7 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                                 clv3_threshold = 1.2
                                 #data['Normalized_'+signal] = data[signal]/max_clv3
 
-                        for signal in ['DIIV','qDII','Auxin','RGAV','qRGA','Gibberelins','DR5','TagBFP']:
+                        for signal in ['DIIV','qDII','Auxin','RGAV','qRGA','GA Input','DR5','TagBFP']:
                             if signal in data.columns:
                                 signal_data  = data[signal][data['layer']==1]
                                 data['Normalized_'+signal] = 0.5 + 0.2*(data[signal]-signal_data.mean())/(signal_data.std())
