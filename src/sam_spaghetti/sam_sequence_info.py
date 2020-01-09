@@ -59,9 +59,12 @@ def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
     nomenclature_data = pd.read_csv(nomenclature_file,sep=',')
     if not 'Name' in nomenclature_data.columns:
         nomenclature_data = pd.read_csv(nomenclature_file,sep=';')
-    nomenclature_names = dict(zip(nomenclature_data['Name'],nomenclature_data['Nomenclature Name']))
-    # print czi_filename
-    return nomenclature_names.get(czi_filename,None)
+    if 'Name' in nomenclature_data.columns:
+        nomenclature_names = dict(zip(nomenclature_data['Name'],nomenclature_data['Nomenclature Name']))
+        # print czi_filename
+        return nomenclature_names.get(czi_filename,None)
+    else:
+        return
 
 def get_sequence_orientation(sequence_name, dirname=sam_spaghetti_dirname):
     orientation_file = dirname + "/nuclei_image_sam_orientation.csv"
