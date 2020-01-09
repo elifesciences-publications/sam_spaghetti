@@ -1,0 +1,38 @@
+@import url("nature.css");
+
+
+body {
+    font-family: helvetica, sans-serif;
+}
+
+.section h1 {
+    font-size: 260% !important;
+    font-family: helvetica, sans-serif !important;
+    color: white !important;
+    text-shadow: 1px 1px 1px black, -1px 1px 1px black, 1px -1px 1px black, -1px -1px 1px black !important;
+    background: #ffe700 !important;
+}
+
+.section h2 {
+    font-size: 200% !important;
+    font-family: helvetica, sans-serif !important;
+    color: white !important;
+    text-shadow: 1px 1px 1px black, -1px 1px 1px black, 1px -1px 1px black, -1px -1px 1px black !important;
+    background: #d69200 !important;
+}
+
+.section a {
+    color: #4e3600;
+}
+
+.related[role="navigation"] {
+    background: #4e3600;
+}
+
+.right {
+    background: #4e3600;
+}
+
+.related[role="navigation"] a {
+    color: white;
+}

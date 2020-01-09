@@ -1,19 +1,19 @@
 ========================
-sam_spaghetti
+SAM Spaghetti
 ========================
 
 .. {# pkglts, doc
 
 .. #}
 
-SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation
+**SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation**
 
 :Author: Guillaume Cerutti
 :Contributors:  Christophe Godin, Jonathan Legrand, Carlos Galvan-Ampudia, Teva Vernoux
 
-:Team: Inria project team `Mosaic <https://team.inria.fr/mosaic/>`_, `RDP <http://www.ens-lyon.fr/RDP/>`_ Team Signal
+:Teams:  `RDP <http://www.ens-lyon.fr/RDP/>`_ Team Signal, Inria project team `Mosaic <https://team.inria.fr/mosaic/>`_
 
-:Institutes: `Inria <http://www.inria.fr>`_, `INRA <https://inra.fr>`_
+:Institutes: `Inria <http://www.inria.fr>`_, `INRA <https://inra.fr>`_, `CNRS <https://cnrs.fr>`_
 
 :Language: Python
 
@@ -21,96 +21,29 @@ SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexat
 
 :Licence: `Cecill-C`
 
+Description
+-----------
+
+.. image:: _static/auxin_map.png
+    :width: 800px
+    :align: center
+
+
+This package provides scripts to reproduce the analysis pipelines described in the article `Temporal integration of auxin information for the regulation of patterning <https://www.biorxiv.org/content/10.1101/469718v2>`_ and used to reconstruct population averages of Shoot Apical Meristems (SAM) of *Arabidopsis thaliana* with quantitative gene expression and hormonal signal 2D maps. It essentially gives access to two major quantitative image analysis and geometrical interpretation pipelines:
+
+
++---------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                   **Image quantification & alignment**                                        | Starting from microscopy acquisitions (CZI) of SAMs expressing an Auxin sensor (DII) and a CLV3 fluorescent reporter, this pipeline quantifies image intensity at cell level and performs an alignment of time lapse sequences into a common SAM reference frame.     |
++---------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                      **PIN image polarity analysis**                                          | Using microscopy acquisitions of SAMs expressing a fluorescent auxin carrier (PIN) and a cell wall staining, this pipeline estimates polarities at cell level. It can also use the result from the previous pipeline to superimpose aligned auxin and PIN information.|
++---------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Requirements
 ------------
 
-- timagetk (https://gitlab.inria.fr/mosaic/timagetk)
-- cellcomplex (https://gitlab.inria.fr/mosaic/cellcomplex)
-- tissue_nukem_3d (https://gitlab.inria.fr/mosaic/tissue_nukem_3d)
-- tissue_paredes (https://gitlab.inria.fr/mosaic/tissue_paredes)
+- `timagetk <https://gitlab.inria.fr/mosaic/timagetk>`_
+- `cellcomplex <https://gitlab.inria.fr/mosaic/cellcomplex)>`_
+- `tissue_nukem_3d <https://gitlab.inria.fr/mosaic/tissue_nukem_3d>`_
+- `tissue_paredes <https://gitlab.inria.fr/mosaic/tissue_paredes>`_
 
-
-Usage
------
-
-Two scripts are provided in `scripts/` to perform complex computational analysis on CZI images of Shoot Apical Meristems (SAMs)
-
-- Detection, quantification and alignment from CZI files (with optional visualization)
-
-
-usage: sam_experiment_detect_quantify_and_align [-h] -e EXPERIMENTS
-                                                   [EXPERIMENTS ...]
-                                                   [-dir DATA_DIRECTORY]
-                                                   [-M MICROSCOPY_DIRECTORY]
-                                                   [-N NUCLEI_DIRECTORY] [-D]
-                                                   [-s] [-R]
-                                                   [-i {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]]
-                                                   [-p {max_intensity,L1_slice}]
-                                                   [-n {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]]
-                                                   [-m {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]]
-                                                   [-G] [-P] [-C] [-v] [-d]
-
-optional arguments:
-  -h, --help            show help message and exit
-  -e EXPERIMENTS, --experiments EXPERIMENTS
-                        List of experiment identifiers
-  -dir DATA_DIRECTORY, --data-directory DATA_DIRECTORY
-                        Path to SAM sequence data files directory containing nomenclature.csv, experiment_info.csv, nuclei_image_sam_orientation.csv
-  -M MICROSCOPY_DIRECTORY, --microscopy-directory MICROSCOPY_DIRECTORY
-                        Path to CZI image directory [default :
-                        data_directory/microscopy]
-  -N NUCLEI_DIRECTORY, --nuclei-directory NUCLEI_DIRECTORY
-                        Path to detected nuclei directory [default :
-                        data_directory/nuclei_images]
-  -D, --detection       Run nuclei detection on all experiments
-  -s, --save-channels   Save INR image files for each microscopy image channel
-  -R, --registration    Run sequence image registration on all experiments
-  -i sequence_raw sequence_aligned, --image-plot sequence_raw sequence_aligned
-                        List of image projections types to plot ['sequence_raw', 'sequence_aligned']
-  -p {max_intensity,L1_slice}, --projection-type {max_intensity,L1_slice}
-                        Projection type for the image plots ['max_intensity','L1_slice']
-  -n {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...], --nuclei-plot {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]
-                        List of signal map types to plot ['sequence_raw',
-                        'sequence_aligned']
-  -m {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...], --map-plot {sequence_raw,sequence_aligned} [{sequence_raw,sequence_aligned} ...]
-                        List of signal map types to plot ['sequence_raw',
-                        'sequence_aligned']
-  -G, --growth-estimation
-                        Estimate surfacic growth on all experiments
-  -P, --primordia-alignment
-                        Align sequences of all experiments based on the
-                        detection of CZ and P0
-  -C, --data-compilation
-                        Compile all the data from the experiments into .csv
-                        files in the data directory
-  -v, --verbose         Verbose
-  -d, --debug           Debug
-  
-
-- Image averaging
-  
-  usage: sam_experiment_image_projection_averaging.py [-h] -e EXPERIMENTS
-                                                    [EXPERIMENTS ...]
-                                                    [-dir DATA_DIRECTORY]
-                                                    [-N NUCLEI_DIRECTORY]
-                                                    [-p {max_intensity,L1_slice}]
-                                                    [-a] [-t] [-v] [-d]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -e EXPERIMENTS [EXPERIMENTS ...], --experiments EXPERIMENTS [EXPERIMENTS ...]
-                        List of experiment identifiers
-  -dir DATA_DIRECTORY, --data-directory DATA_DIRECTORY
-                        Path to SAM sequence data files directory
-                        (nomenclature, orientation...)
-  -N NUCLEI_DIRECTORY, --nuclei-directory NUCLEI_DIRECTORY
-                        Path to detected nuclei directory [default :
-                        data_directory/nuclei_images]
-  -p {max_intensity,L1_slice}, --projection-type {max_intensity,L1_slice}
-                        Projection type for the image plots ['max_intensity',
-                        'L1_slice']
-  -a, --aligned         Whether to use raw or aligned image projections
-  -t, --time-averaging  Compute one average image per acquisition time
-  -v, --verbose         Verbose
-  -d, --debug           Debug

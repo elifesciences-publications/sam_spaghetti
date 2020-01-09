@@ -1,0 +1,34 @@
+# {# pkglts, conda.package
+package:
+  name: sam_spaghetti
+  version: "0.1.0"
+# #}
+
+# {# pkglts, conda.src
+source:
+  path:
+    ../
+# #}
+
+# {# pkglts, conda.req_build
+requirements:
+  build:
+    - python
+    - setuptools
+# #}
+
+# {# pkglts, conda.req_run
+  run:
+    - python
+# #}
+
+build:
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+# {# pkglts, conda.about
+about:
+  summary: "SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation"
+  license: "cecill-c"
+  license_file: LICENSE
+# #}

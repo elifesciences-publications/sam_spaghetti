@@ -1,20 +1,23 @@
+.. include:: ../README.rst
 
-Welcome to sam_spaghetti's documentation!
-====================================================
-
-Contents:
+Installation
+------------
 
 .. toctree::
-    :maxdepth: 2
 
-    readme
     installation
-    usagecontributing
-    authors
-    history
 
-Indices and tables
-==================
+Scripts
+-------
+
+.. toctree::
+
+    scripts/file_architecture
+    scripts/detect_quantify_and_align
+    scripts/segment_and_quantify_polarities
+
+Contents
+--------
 
 * :ref:`genindex`
 * :ref:`modindex`

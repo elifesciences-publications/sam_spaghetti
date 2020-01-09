@@ -40,7 +40,7 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
                     if 'qDII' in data.columns:
                         data['Auxin'] = 1 - data['qDII']
                     if 'qRGA' in data.columns:
-                        data['Gibberelins'] = 1 - data['qRGA']
+                        data['GA Input'] = 3 - data['qRGA']
 
                     if normalize_data:
                         for signal in ['CLV3']:
