@@ -3,7 +3,7 @@ import pandas as pd
 
 import sam_spaghetti
 from sam_spaghetti.sam_microscopy_loading import load_image_from_microscopy
-from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, get_experiment_microscope_orientation
+from sam_spaghetti.sam_sequence_info import get_experiment_name, get_experiment_microscopy, get_nomenclature_name, get_experiment_channels, get_experiment_reference, get_sequence_orientation, get_experiment_microscope_orientation, update_lut_ranges
 from sam_spaghetti.detection_quantification import detect_and_quantify
 from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load_sequence_signal_image_slices, load_sequence_signal_data
 from sam_spaghetti.signal_image_slices import sequence_signal_image_slices, sequence_image_primordium_slices, sequence_signal_data_primordium_slices
@@ -78,6 +78,8 @@ def main():
 
     experiments = args.experiments
     image_dirname = args.output_directory if args.output_directory is not None else data_dirname+"/nuclei_images"
+
+    update_lut_ranges(data_dirname)
 
     for exp in experiments:
         experiment_name = get_experiment_name(exp,data_dirname)
