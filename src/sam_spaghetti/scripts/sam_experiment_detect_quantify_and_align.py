@@ -95,7 +95,7 @@ def main():
                 if not os.path.exists(experiment_dirname):
                     logging.warning("Microscopy directory not found for "+exp+", no detection will be performed.")
                 else:                    
-                    microscopy_filenames = [experiment_dirname+"/"+f for f in os.listdir(experiment_dirname) if np.any([ext in f for ext in ['.czi','.lsm']])]
+                    microscopy_filenames = [experiment_dirname+"/"+f for f in os.listdir(experiment_dirname) if np.any([ext in f for ext in ['.czi','.lsm','.tif']])]
                     nomenclature_names = [get_nomenclature_name(microscopy_filename,data_dirname) for microscopy_filename in microscopy_filenames]
                     nomenclature_names = [n for n in nomenclature_names if n is not None]
 
