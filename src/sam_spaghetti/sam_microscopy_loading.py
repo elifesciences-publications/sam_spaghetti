@@ -42,6 +42,8 @@ def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature
         img_dict = read_czi_image(microscopy_file, channel_names=channel_names)
     elif os.path.splitext(microscopy_file)[1] == ".lsm":
         img_dict = read_lsm_image(microscopy_file, channel_names=channel_names)
+    elif os.path.splitext(microscopy_file)[1] == ".tif":
+        img_dict = read_tiff_image(microscopy_file, channel_names=channel_names)
     else:
         img_dict = None
         logging.error("".join(["  " for l in range(loglevel)]) + "--> Could not read image format! " + str(os.path.splitext(microscopy_file)[1]) + " not supported!")
