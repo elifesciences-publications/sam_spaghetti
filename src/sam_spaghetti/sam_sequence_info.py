@@ -66,10 +66,11 @@ def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
     czi_filename = os.path.split(czi_file)[1]
     nomenclature_file = dirname+"/nomenclature.csv"
     nomenclature_data = pd.read_csv(nomenclature_file,sep=',')
-    if not 'Name' in nomenclature_data.columns:
+    if not 'filename' in nomenclature_data.columns:
         nomenclature_data = pd.read_csv(nomenclature_file,sep=';')
-    if 'Name' in nomenclature_data.columns:
-        nomenclature_names = dict(zip(nomenclature_data['Name'],nomenclature_data['Nomenclature Name']))
+    if 'filename' in nomenclature_data.columns:
+        nomenclature_names = [get_experiment_name(exp,dirname)+"_sam"+str(sam_id).zfill(2)+"_t"+str(t).zfill(2) for exp,sam_id,t in nomenclature_data[['experiment','sam_id','hour_time']].values]
+        nomenclature_names = dict(zip(nomenclature_data['filename'],nomenclature_names))
         # print czi_filename
         return nomenclature_names.get(czi_filename,None)
     else:
@@ -79,8 +80,9 @@ def get_nomenclature_name(czi_file, dirname=sam_spaghetti_dirname):
 def get_sequence_orientation(sequence_name, dirname=sam_spaghetti_dirname):
     orientation_file = dirname + "/nuclei_image_sam_orientation.csv"
     orientation_data = pd.read_csv(orientation_file,sep=",")
-    if not 'sequence_name' in orientation_data.columns:
+    if not 'experiment' in orientation_data.columns:
         orientation_data = pd.read_csv(orientation_file,sep=";")
+    orientation_data['sequence_name'] = [get_experiment_name(exp,dirname)+"_sam"+str(sam_id).zfill(2) for exp,sam_id in orientation_data[['experiment','sam_id']].values]
     if sequence_name in orientation_data['sequence_name'].values:
         meristem_orientation = int(orientation_data[orientation_data['sequence_name']==sequence_name]['orientation'])
         return meristem_orientation

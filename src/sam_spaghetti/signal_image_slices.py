@@ -107,7 +107,7 @@ def sequence_aligned_signal_images(sequence_name, image_dirname, save_files=Fals
 def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False, signal_names=None, filenames=None, registered=False, aligned=False, filtering=False, projection_type="L1_slice", reference_name='TagBFP', membrane_name='PI', resolution=None, r_max=120., microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     signal_images = load_sequence_signal_images(sequence_name, image_dirname, registered=registered, verbose=verbose, debug=debug, loglevel=loglevel+1)
-    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel+1)
+    signal_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=aligned, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel+1)
     if len(signal_data)==0:
         signal_data = load_sequence_signal_data(sequence_name, image_dirname, nuclei=False, aligned=aligned, verbose=verbose, debug=debug, loglevel=loglevel + 1)
 
@@ -184,10 +184,10 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                 resolution = np.abs(voxelsize)[0]
 
             if aligned:
-                n_points = np.round((2*r_max)/resolution+1)
+                n_points = int(np.round((2*r_max)/resolution+1))
                 xx,yy = np.meshgrid(np.linspace(-r_max,r_max,n_points),np.linspace(-r_max,r_max,n_points))
             else:
-                n_points = np.round(((size-1)*np.abs(voxelsize))[0]/resolution+1)
+                n_points = int(np.round(((size-1)*np.abs(voxelsize))[0]/resolution+1))
                 xx,yy = np.meshgrid(np.linspace(0,((size-1)*voxelsize)[0],n_points),np.linspace(0,((size-1)*voxelsize)[1],n_points))
 
             print(signal_images[signal_names[0]][filename].shape, xx.shape)
@@ -221,9 +221,9 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                     logging.info("".join(["  " for l in range(loglevel)])+"  --> Slicing : "+filename+" "+signal_name)
 
                     if aligned:
-                        image_slices[signal_name][filename] = aligned_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape)
+                        image_slices[signal_name][filename] = aligned_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape).T
                     else:
-                        image_slices[signal_name][filename] = filtered_signal_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape)
+                        image_slices[signal_name][filename] = filtered_signal_images[signal_name][filename][slice_coords[filename]].reshape(xx.shape).T
                     image_slices[signal_name][filename][extra_mask] = 0
 
                     if "_seg" in signal_name:
@@ -260,13 +260,13 @@ def sequence_signal_image_slices(sequence_name, image_dirname, save_files=False,
                             max_projection = (filtered_signal_images[signal_name][filename][coords[:2]].reshape(xx.shape + (reference_img.shape[2],))).max(axis=2)
                         max_projection[extra_mask] = 0
 
-                        image_slices[signal_name][filename] = max_projection
+                        image_slices[signal_name][filename] = max_projection.T
                         logging.info("".join(["  " for l in range(loglevel)])+"  <-- Projecting : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
                     else:
                         start_time = current_time()
                         logging.info("".join(["  " for l in range(loglevel)])+"  --> Projecting : "+filename+" segmented " + membrane_name)
                         projection = labelled_image_projection(filtered_signal_images[signal_name][filename],direction=microscope_orientation)
-                        image_slices[signal_name][filename] = projection
+                        image_slices[signal_name][filename] = projection.T
                         image_slices[signal_name][filename][image_slices[signal_name][filename]==0] = 1
                         logging.info("".join(["  " for l in range(loglevel)]) + "  <-- Projecting : " + filename + " segmented " + membrane_name + " [" + str(current_time() - start_time) + " s]")
 

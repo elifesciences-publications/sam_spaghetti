@@ -1,2 +1,2 @@
-experiment,sam_id,sequence_name,growth_condition,orientation
-SAM-TEST,7,qDII-CLV3-PIN1-LD-TEST_sam07,LD,1
+experiment,sam_id,orientation
+SAM-TEST,7,1
