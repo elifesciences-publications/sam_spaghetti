@@ -1,2 +1,2 @@
-signal_name;colormap;signal_range;color_range;channel_range
-TagBFP;;(0,55000);(0,55000);
+signal_name;colormap;channel_range;color_range;signal_range
+TagBFP;;;(0,55000);(0,55000)

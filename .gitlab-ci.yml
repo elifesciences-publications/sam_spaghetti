@@ -13,16 +13,18 @@ conda_build:
     paths:
       - conda-bld
   only:
+    - master
     - develop
 
 coverage:
   stage: test
   script:
-  - conda env create -f conda_recipes/env.yaml
+  - conda env create -f conda/env.yaml
   - source activate sam_spaghetti
   - python setup.py develop
 #  - nosetests -v
   only:
+  - master
   - develop
  
 anaconda:
@@ -34,6 +36,7 @@ anaconda:
   - anaconda --token=$ANACONDA_TOKEN --verbose upload conda-bld/linux-64/sam_spaghetti-* --user mosaic
   - anaconda --token=$ANACONDA_TOKEN --verbose upload conda-bld/osx-64/sam_spaghetti-* --user mosaic
   only:
+  - master
   - develop
 
 
@@ -41,7 +44,7 @@ pages:
   stage: deploy
   script:
   - conda update --all
-  - conda env create -f conda_recipes/env.yaml
+  - conda env create -f conda/env.yaml
   - source activate sam_spaghetti
   - python setup.py develop
   - conda install sphinx make
@@ -52,4 +55,5 @@ pages:
     paths:
     - public
   only:
+  - master
   - develop

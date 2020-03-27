@@ -1,34 +1,35 @@
-# {# pkglts, conda.package
 package:
   name: sam_spaghetti
-  version: "0.1.0"
-# #}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', 'default') }}
 
-# {# pkglts, conda.src
 source:
-  path:
-    ../
-# #}
-
-# {# pkglts, conda.req_build
-requirements:
-  build:
-    - python
-    - setuptools
-# #}
-
-# {# pkglts, conda.req_run
-  run:
-    - python
-# #}
+  git_url: https://gitlab.inria.fr/mosaic/publications/sam_spaghetti.git
+  git_tag: develop
 
 build:
-  noarch: python
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  number: {{ GIT_DESCRIBE_NUMBER }}
+  preserve_egg_dir: True
 
-# {# pkglts, conda.about
+requirements:
+  build:
+    - setuptools
+    - python >=3.6,<3.8
+  host:
+    - python >=3.6,<3.8
+  run:
+    - python >=3.6,<3.8
+    - jupyter
+    - numpy
+    - scipy
+    - pandas
+    - vtk
+    - matplotlib
+    - timagetk
+    - cellcomplex
+    - tissue_analysis
+    - tissue_nukem_3d
+    - tissue_paredes
+
 about:
-  summary: "SAM Sequence Primordia Alignment, GrowtH Estimation, Tracking & Temporal Indexation"
-  license: "cecill-c"
-  license_file: LICENSE
-# #}
+  home: http://mosaic.gitlabpages.inria.fr/sam_spaghetti
+  license: Cecill License
