@@ -11,10 +11,10 @@ Creating a new environment (recommended)
 
 .. code-block::
 
-    conda create -n sam_spaghetti -c mosaic python>=3.6 sam_spaghetti
+    conda create -n sam_spaghetti -c mosaic sam_spaghetti
 
 
-In an existing Python 3.6+ environment
+In an existing Python 3.7 environment
 --------------------------------------
 
 
