@@ -52,7 +52,7 @@ pages:
   - conda env create -f conda/env.yaml
   - source activate sam_spaghetti
   - python setup.py develop
-  - conda install sphinx make
+  - conda install -c conda-forge sphinx make nbsphinx
   - cd doc
   - make html
   - mv build/html ../public
