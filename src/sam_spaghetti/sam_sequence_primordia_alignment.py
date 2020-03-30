@@ -72,7 +72,7 @@ def optimize_vertical_axis(positions, angle_max=0.2, angle_resolution=0.01, r_ma
     """
     """
 
-    angles = np.linspace(-angle_max,angle_max,2*(angle_max/angle_resolution)+1)
+    angles = np.linspace(-angle_max,angle_max,int(np.ceil(2*(angle_max/angle_resolution)+1)))
     
     psis, phis = np.meshgrid(angles,angles)
     
@@ -91,7 +91,7 @@ def optimize_vertical_axis(positions, angle_max=0.2, angle_resolution=0.01, r_ma
             r_weights = np.exp(-np.power(rotated_r,2)/np.power(20,2))
             p = np.polyfit(rotated_r,rotated_z,deg=2,w=r_weights)
         
-            r = np.linspace(0,r_max,r_max+1)
+            r = np.linspace(0,r_max,int(r_max+1))
             mse = (r_weights*np.power(rotated_z-np.polyval(p,rotated_r),2)).sum()/(r_weights.sum())
             phi_mse += [mse]
         rotation_mse += [phi_mse]
@@ -128,8 +128,8 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
 
         max_angle = (opening_angle+10*(np.maximum(0,1-(primordium))))
 
-        radius_min = 0.9 + 0.2*(primordium)
-        radius_max = 1.9 + 0.25*(primordium)
+        radius_min = 0.8 + 0.2*(primordium)
+        radius_max = 1.7 + 0.25*(primordium)
             
         primordium_minima_data = minima_data.copy(deep=True)
         
@@ -138,7 +138,7 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
         primordium_minima_data['score'] *= np.minimum(np.power((primordium_minima_data['radial_distance']/clv3_radius)/(radius_min),2),1)
         primordium_minima_data = primordium_minima_data[primordium_minima_data['score']>0]
         if primordium_minima_data['score'].max() > 0.2:
-            primordium_minimum =  np.argmax(primordium_minima_data['score']) 
+            primordium_minimum = primordium_minima_data.index[np.argmax(primordium_minima_data['score'])]
         else:
             primordium_minimum = None
                 
@@ -147,7 +147,6 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
             primordia_extrema['primordium'] += [primordium]
             for field in extrema_fields:
                 primordia_extrema[field] += list(extremum_data[field])
-                
         primordium_maxima_data = maxima_data.copy(deep=True)
         
         primordium_maxima_data['score'] *= np.cos(np.minimum(np.pi*np.abs((primordium_maxima_data['aligned_theta']-primordium_theta+180)%360-180)/max_angle,np.pi))
@@ -155,16 +154,15 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
         primordium_maxima_data['score'] *= np.minimum(np.power(np.maximum((primordium_maxima_data['radial_distance']/clv3_radius)/(radius_min-0.3),0),2),1)
         primordium_maxima_data = primordium_maxima_data[primordium_maxima_data['score']>0]
         if primordium_minimum is not None:
-            primordium_maxima_data['score'] *= primordium_minima_data['radial_distance'][primordium_minimum]/primordium_maxima_data['radial_distance'] > 1.05 
+            primordium_maxima_data['score'] *= primordium_minima_data['radial_distance'][primordium_minimum]/primordium_maxima_data['radial_distance'] > 1.05
             if signal_name is not None:
                 primordium_maxima_data['score'] *= np.maximum(np.minimum(1,(primordium_maxima_data[signal_name]-primordium_minima_data[signal_name][primordium_minimum])/0.2),0)
         if primordium_maxima_data['score'].max() > 0.2:
-            primordium_maximum =  np.argmax(primordium_maxima_data['score']) 
+            primordium_maximum = primordium_maxima_data.index[np.argmax(primordium_maxima_data['score'])]
         else:
             primordium_maximum = None
 
         primordium_saddle_data = saddle_data.copy(deep=True)
-        
         primordium_saddle_data['score'] *= np.cos(np.minimum(np.pi*np.abs((primordium_saddle_data['aligned_theta']-primordium_theta+180)%360-180)/max_angle,np.pi))
         primordium_saddle_data['score'] *= np.minimum(np.power((radius_max-0.3)/(primordium_saddle_data['radial_distance']/clv3_radius),2),1)
         primordium_saddle_data['score'] *= np.minimum(np.power(np.maximum((primordium_saddle_data['radial_distance']/clv3_radius)/(radius_min-0.3),0),2),1)
@@ -176,7 +174,7 @@ def label_primordia_extrema(extrema_data, signal_name=None, clv3_radius=28., pri
         if (primordium_maximum is None) or (primordium_maxima_data['score'].max()<primordium_saddle_data['score'].max()):
             if primordium_saddle_data['score'].max() > 0.2:
                 primordium_maximum = None
-                primordium_saddle =  np.argmax(primordium_saddle_data['score'])
+                primordium_saddle = primordium_saddle_data.index[np.argmax(primordium_saddle_data['score'])]
             else:
                 primordium_maximum = None
                 primordium_saddle = None
@@ -308,7 +306,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
 
     rotated_positions, rotation_matrix = optimize_vertical_axis(centered_positions,r_max=r_max,verbose=verbose,debug=debug,loglevel=loglevel+2) 
 
-    figure = plt.figure(2)
+    figure = plt.figure(1)
     figure.clf()
     figure.patch.set_facecolor('w')
 
@@ -335,7 +333,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     normalized_clv3 = np.concatenate([sequence_data[f]['Normalized_CLV3'].values for f in registration_filenames])
     
     radial_thetas = np.linspace(-180,180,361)*np.pi/180.
-    radial_radii = np.linspace(0,r_max+10,2*r_max+21)
+    radial_radii = np.linspace(0,r_max+10,int(2*r_max+21))
     
     T,R = np.meshgrid(radial_thetas,radial_radii)
     xx = R*np.cos(T)
@@ -350,10 +348,12 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     confidence_map = nuclei_density  + np.maximum(1-np.linalg.norm([xx,yy],axis=0)/60.,0)
     confidence_map = nd.gaussian_filter(confidence_map,sigma=1.0)
 
-    figure = plt.figure(2)
+    figure = plt.figure(1)
     figure.clf()
     figure.patch.set_facecolor('w')
-    
+
+    figure.add_subplot(1,2,1)
+
     figure.gca().contourf(xx,yy,radial_clv3,np.linspace(0,5,51),cmap=signal_colormaps['CLV3'],alpha=1,antialiased=True,vmin=0,vmax=5)
     figure.gca().contour(xx,yy,radial_clv3,np.linspace(0,5,51),cmap='gray',alpha=0.2,linewidths=1,antialiased=True,vmin=-1,vmax=0)
         
@@ -362,22 +362,17 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
         
     figure.gca().axis('equal')
 
-    c = patch.Circle(xy=[0, 0], radius=clv3_radius, ec="#c94389", fc='None', lw=5, alpha=0.5)
+    c = patch.Circle(xy=[0, 0], radius=clv3_radius, ec="k", fc='None', lw=7, alpha=1)
+    figure.gca().add_artist(c)
+    c = patch.Circle(xy=[0, 0], radius=clv3_radius, ec="#c94389", fc='None', lw=5, alpha=1)
     figure.gca().add_artist(c)
 
-
-    figure.gca().set_xlim(-r_max - 10, r_max + 10)
-    figure.gca().set_ylim(-r_max - 10, r_max + 10)
+    figure.gca().set_xlim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
+    figure.gca().set_ylim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
     figure.gca().axis('off')
 
-    figure.set_size_inches(18,18)
-    figure.tight_layout()
+    figure.add_subplot(1,2,2)
 
-    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_Normalized_CLV3_map.jpg")
-    
-    figure = plt.figure(2)
-    figure.clf()
-    figure.patch.set_facecolor('w')
     
     figure.gca().contourf(xx,yy,radial_qDII,np.linspace(signal_ranges['Normalized_qDII'][0],signal_ranges['Normalized_qDII'][1],51),cmap=signal_colormaps['Normalized_qDII'],alpha=1,antialiased=True,vmin=signal_lut_ranges['Normalized_qDII'][0],vmax=signal_lut_ranges['Normalized_qDII'][1])
     figure.gca().contour(xx,yy,radial_qDII,np.linspace(signal_ranges['Normalized_qDII'][0],signal_ranges['Normalized_qDII'][1],51),cmap='gray',alpha=0.2,linewidths=1,antialiased=True,vmin=-1,vmax=0)
@@ -407,15 +402,14 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     c = patch.RegularPolygon(xy=absolute_min,numVertices=3,radius=5,orientation=-np.pi,fc=primordia_colors[0],ec='w',lw=3,alpha=1)
     figure.gca().add_artist(c)
 
-    figure.gca().set_xlim(-r_max - 10, r_max + 10)
-    figure.gca().set_ylim(-r_max - 10, r_max + 10)
+    figure.gca().set_xlim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
+    figure.gca().set_ylim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
     figure.gca().axis('off')
 
-    figure.set_size_inches(18,18)
+    figure.set_size_inches(18*2,18)
     figure.tight_layout()
 
-    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_Normalized_qDII_map.jpg")
-        
+    figure.savefig(image_dirname+"/"+sequence_name+"/"+sequence_name+"_Normalized_CLV3_qDII_maps.jpg")
 
     logging.info("".join(["  " for l in range(loglevel)])+"  --> Applying alignment transform "+sequence_name)
 
@@ -457,7 +451,7 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     return sequence_data
 
 
-def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_orientation=1, r_max=80, cell_radius=5., density_k=0.25, microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
+def detect_organ_primordia(sequence_name, image_dirname, save_files=True, r_max=80, cell_radius=5., density_k=0.25, microscope_orientation=-1, verbose=False, debug=False, loglevel=0):
 
     sequence_data = load_sequence_signal_data(sequence_name, image_dirname, normalized=True, aligned=True, verbose=verbose, debug=debug, loglevel=loglevel)
     
@@ -466,7 +460,11 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         sequence_data[filename] = sequence_data[filename][sequence_data[filename]['layer']==1]
 
     radial_thetas = np.linspace(-180,180,361)*np.pi/180.
-    radial_radii = np.linspace(0,r_max+10,2*r_max+21)
+    radial_radii = np.linspace(0,r_max+10,int(2*r_max+21))
+
+    figure = plt.figure(0)
+    figure.clf()
+    figure.patch.set_facecolor('w')
 
     for i_file, filename in enumerate(filenames):
         data = sequence_data[filename]
@@ -489,56 +487,39 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         R = file_map.rr
         T = file_map.tt
 
-
-        figure = plt.figure(0)
-        figure.clf()
-        figure.patch.set_facecolor('w')
-
         signal_name = "Normalized_qDII"
-        plot_signal_map(file_map, signal_name, figure, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name], distance_rings=False)
-
-        # c = patch.Circle(xy=[0,0],radius=clv3_radius,ec="#c94389",fc='None',lw=5,alpha=0.5)
-        # figure.gca().add_artist(c)
-         
-        figure.set_size_inches(18,18)
-        figure.savefig("".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_"+signal_name+"_map.png"]))
-
 
         compute_signal_map_landscape(file_map,[signal_name])
 
         qDII_gradient_valleys = file_map.signal_map(signal_name+"_valleys")
         qDII_gradient_ridges = file_map.signal_map(signal_name+"_ridges")
-        
-        landscape_figure = plt.figure(3)
-        landscape_figure.clf()
-        landscape_figure.patch.set_facecolor('w')
 
-        landscape_figure.gca().pcolormesh(xx,yy,(qDII_gradient_ridges-qDII_gradient_valleys),cmap='PuOr_r',antialiased=True,shading='gouraud',vmin=-0.25,vmax=0.25)
-        landscape_figure.gca().pcolormesh(xx,yy,4.*np.sqrt(qDII_gradient_ridges*qDII_gradient_valleys),cmap='Greens',antialiased=True,shading='gouraud',vmin=0,vmax=0.25,alpha=0.2)
+        figure.add_subplot(3,len(filenames),i_file+1)
+
+        figure.gca().pcolormesh(xx,yy,(qDII_gradient_ridges-qDII_gradient_valleys),cmap='PuOr_r',antialiased=True,shading='gouraud',vmin=-0.25,vmax=0.25)
+        figure.gca().pcolormesh(xx,yy,4.*np.sqrt(qDII_gradient_ridges*qDII_gradient_valleys),cmap='Greens',antialiased=True,shading='gouraud',vmin=0,vmax=0.25,alpha=0.2)
 
         qdII_gradient_saddles = nd.binary_dilation(qDII_gradient_ridges*qDII_gradient_valleys>0.01,iterations=2)
-        landscape_figure.gca().contour(xx,yy,(qDII_gradient_ridges>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Oranges',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
-        landscape_figure.gca().contour(xx,yy,(qDII_gradient_valleys>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Purples',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
-        landscape_figure.gca().contour(xx,yy,(qdII_gradient_saddles)&(file_map.confidence_map>0.5),[0.5],cmap='Greens',antialiased=True,shading='gouraud',vmin=-1,vmax=2)
+        figure.gca().contour(xx,yy,(qDII_gradient_ridges>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Oranges',antialiased=True,vmin=-1,vmax=2)
+        figure.gca().contour(xx,yy,(qDII_gradient_valleys>0.03)&(file_map.confidence_map>0.5)&(np.logical_not(qdII_gradient_saddles)),[0.5],cmap='Purples',antialiased=True,vmin=-1,vmax=2)
+        figure.gca().contour(xx,yy,(qdII_gradient_saddles)&(file_map.confidence_map>0.5),[0.5],cmap='Greens',antialiased=True,vmin=-1,vmax=2)
  
         for a in range(16):
-            landscape_figure.gca().contourf(xx,yy,file_map.confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
+            figure.gca().contourf(xx,yy,file_map.confidence_map,[-100,0.1+a/24.],cmap='gray_r',alpha=1-a/15.,vmin=1,vmax=2)
         
-        # CS = landscape_figure.gca().contour(xx, yy, R,np.linspace(0,80,17),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
-        # landscape_figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
+        # CS = figure.gca().contour(xx, yy, R,np.linspace(0,80,17),cmap='Greys',vmin=-1,vmax=0,alpha=0.1)
+        # figure.gca().clabel(CS, inline=1, fontsize=10,alpha=0.1)
         
         # c = patch.Circle(xy=[0,0],radius=clv3_radius,ec="#c94389",fc='None',lw=5,alpha=0.5)
-        # landscape_figure.gca().add_artist(c)
+        # figure.gca().add_artist(c)
 
-        landscape_figure.gca().set_xlim(-r_max-10,r_max+10)
-        landscape_figure.gca().set_ylim(-r_max-10,r_max+10)
-        landscape_figure.gca().axis('off')
+        figure.gca().set_xlim(-r_max-10,r_max+10)
+        figure.gca().set_ylim(-r_max-10,r_max+10)
+        figure.gca().axis('off')
         
-        landscape_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_qDII_raw_landscape.png"])   
-        landscape_figure.set_size_inches(18,18)
-        landscape_figure.savefig(landscape_filename)
-
-
+        # landscape_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_qDII_raw_landscape.png"])
+        # landscape_figure.set_size_inches(18,18)
+        # landscape_figure.savefig(landscape_filename)
 
         logging.info("".join(["  " for l in range(loglevel)])+"--> Detecting landscape extremal points "+filename)
 
@@ -551,78 +532,68 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         # extrema_data['score'][extrema_data['extremum_type']=='saddle'] *= 0.2 + extrema_data[extrema_data['extremum_type']=='saddle'][signal_name]
         extrema_data['score'] *= np.minimum(1,0.5+extrema_data['extremality'])
         # extrema_data['score'][extrema_data['extremum_type']!='saddle'] *= 1 - 1./extrema_data[extrema_data['extremum_type']!='saddle']['area']
-        extrema_data['score'] *= [1 - 1./a if t!='saddle' else 1 for a,t in extrema_data[['area','extremum_type']].values]
-        # extrema_data['score'] *= (extrema_data['radial_distance']/clv3_radius)>0.5
+        extrema_data['score'] *= [1 - 1./a if t != 'saddle' else 1 for a,t in extrema_data[['area','extremum_type']].values]
+        extrema_data['score'] *= (extrema_data['radial_distance']/clv3_radius)>0.5
         extrema_data = extrema_data[extrema_data['score']>0]
 
         minima_data = extrema_data[extrema_data['extremum_type']=='minimum']
         maxima_data = extrema_data[extrema_data['extremum_type']=='maximum']
         saddle_data = extrema_data[extrema_data['extremum_type']=='saddle']
 
-        landscape_figure = plt.figure(3)
-        landscape_figure.clf()
-        landscape_figure.patch.set_facecolor('w')
+        figure.add_subplot(3,len(filenames),len(filenames)+i_file+1)
 
         signal_name = "Normalized_qDII"
-        plot_signal_map(file_map, signal_name, figure, colormap='Greys', signal_range=signal_ranges[signal_name][0], signal_lut_range=(signal_lut_ranges[signal_name][0],signal_lut_ranges[signal_name][0]), distance_rings=False)
+        plot_signal_map(file_map, signal_name, figure, colormap='Greys', signal_range=signal_ranges[signal_name], signal_lut_range=(signal_lut_ranges[signal_name][0],signal_lut_ranges[signal_name][0]), distance_rings=False)
+
+        figure.gca().pcolormesh(xx,yy,(qDII_gradient_ridges-qDII_gradient_valleys),cmap='PuOr_r',antialiased=True,shading='gouraud',vmin=-0.25,vmax=0.25,alpha=0.5)
+        figure.gca().pcolormesh(xx,yy,4.*np.sqrt(qDII_gradient_ridges*qDII_gradient_valleys),cmap='Greens',antialiased=True,shading='gouraud',vmin=0,vmax=0.25,alpha=0.1)
+
 
         for a in range(16):
-            landscape_figure.gca().contourf(xx, yy, file_map.confidence_map, [-100, 0.1 + a / 24.], cmap='gray_r', alpha=1 - a / 15., vmin=1, vmax=2)
+            figure.gca().contourf(xx, yy, file_map.confidence_map, [-100, 0.1 + a / 24.], cmap='gray_r', alpha=1 - a / 15., vmin=1, vmax=2)
 
-        landscape_figure.gca().set_xlim(-r_max - 10, r_max + 10)
-        landscape_figure.gca().set_ylim(-r_max - 10, r_max + 10)
-        landscape_figure.gca().axis('off')
+        figure.gca().set_xlim(-r_max - 10, r_max + 10)
+        figure.gca().set_ylim(-r_max - 10, r_max + 10)
+        figure.gca().axis('off')
         
-        landscape_figure.gca().scatter(minima_data['aligned_x'],minima_data['aligned_y'],c=np.ones(len(minima_data)),cmap='Purples',s=300,marker="v",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+        figure.gca().scatter(minima_data['aligned_x'],minima_data['aligned_y'],c=np.ones(len(minima_data)),cmap='Purples',s=300,marker="v",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         for l in minima_data.index:
             # if minima_data['score'][l]>0.2:
             if minima_data['score'][l]>0.:
-                #landscape_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+"}$",color='b',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                #landscape_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+" ("+str(np.round(minima_data['extremality'][l],2))+")}$",color='indigo',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+"}$",color='indigo',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],str(l),color='indigo',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
+                #figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+"}$",color='b',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                #figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+" ("+str(np.round(minima_data['extremality'][l],2))+")}$",color='indigo',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+"}$",color='indigo',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],str(l),color='indigo',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
         
-        landscape_figure.gca().scatter(maxima_data['aligned_x'],maxima_data['aligned_y'],c=np.ones(len(maxima_data)),cmap='Oranges',s=300,marker="^",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+        figure.gca().scatter(maxima_data['aligned_x'],maxima_data['aligned_y'],c=np.ones(len(maxima_data)),cmap='Oranges',s=300,marker="^",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         for l in maxima_data.index:
             # if maxima_data['score'][l]>0.2:
             if maxima_data['score'][l]>0.:
-                #landscape_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+"}$",color='r',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                #landscape_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+" ("+str(np.round(maxima_data['extremality'][l],2))+")}$",color='darkorange',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+"}$",color='darkorange',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],str(l),color='darkorange',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
+                #figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+"}$",color='r',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                #figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+" ("+str(np.round(maxima_data['extremality'][l],2))+")}$",color='darkorange',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+"}$",color='darkorange',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],str(l),color='darkorange',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
 
-        landscape_figure.gca().scatter(saddle_data['aligned_x'],saddle_data['aligned_y'],c=np.ones(len(saddle_data)),cmap='Greens',s=300,marker="o",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+        figure.gca().scatter(saddle_data['aligned_x'],saddle_data['aligned_y'],c=np.ones(len(saddle_data)),cmap='Greens',s=300,marker="o",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         for l in saddle_data.index:
             if saddle_data['score'][l]>0:
-                #landscape_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+"}$",color='m',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                #landscape_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+" ("+str(np.round(saddle_data['extremality'][l],2))+")}$",color='forestgreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+"}$",color='forestgreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
-                landscape_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],str(l),color='forestgreen',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
+                #figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+"}$",color='m',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                #figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+" ("+str(np.round(saddle_data['extremality'][l],2))+")}$",color='forestgreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+"}$",color='forestgreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
+                figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],str(l),color='forestgreen',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
         
-        landscape_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_qDII_landscape.png"])   
-        landscape_figure.set_size_inches(18,18)
-        landscape_figure.savefig(landscape_filename)
-    
+        # landscape_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_qDII_landscape.png"])
+        # landscape_figure.set_size_inches(18,18)
+        # landscape_figure.savefig(landscape_filename)
+
         # extrema_data = pd.concat([minima_data,maxima_data,saddle_data])
         extrema_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_all_extrema.csv"])    
-        extrema_data.to_csv(extrema_filename)
+        extrema_data.to_csv(extrema_filename,index=False)
 
         logging.info("".join(["  " for l in range(loglevel)])+"--> Labelling extremal points by primordia "+filename)
 
         opening_angle = 75.
         primordia_extrema_data = label_primordia_extrema(extrema_data, signal_name, clv3_radius, opening_angle=opening_angle)
-    
-
-        primordium_figure = plt.figure(2)
-        primordium_figure.clf()
-        primordium_figure.patch.set_facecolor('w')
-
-        # plot_signal_map(file_map, signal_name, primordium_figure, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name])
-        
-        primordium_figure.gca().axis('equal')
-        primordium_figure.gca().set_xlim(xx.min(),xx.max())
-        primordium_figure.gca().set_ylim(yy.min(),yy.max())
-        primordium_figure.gca().axis('off')
 
         minima_domains = np.ones_like(T)
         primordia_domains = {}   
@@ -653,29 +624,35 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
             for c in ['red','green','blue']:
                 color_dict[c] = tuple(color_dict[c])
             mpl_cmap = mpl.colors.LinearSegmentedColormap("primordium_"+str(primordium), color_dict)
-            primordium_figure.gca().contour(xx,yy,primordia_domains[primordium],np.linspace(0.1,1,11),cmap=mpl_cmap)
+            figure.gca().contour(xx,yy,primordia_domains[primordium],np.linspace(0.1,1,11),cmap=mpl_cmap)
 
-        primordium_figure.gca().scatter(minima_data['aligned_x'],minima_data['aligned_y'],c=np.ones(len(minima_data)),cmap='Greys',s=200,marker="v",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+
+        figure.gca().scatter(minima_data['aligned_x'],minima_data['aligned_y'],c=np.ones(len(minima_data)),cmap='Greys',s=200,marker="v",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         # for l in minima_data.index:
         #     if minima_data['score'][l]>0.2:
         #         #primordium_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+"}$",color='b',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],"$_{"+str(np.round(minima_data['score'][l],2))+" ("+str(np.round(minima_data['extremality'][l],2))+")}$",color='seagreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(minima_data['aligned_x'][l],minima_data['aligned_y'][l],str(l),color='seagreen',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
         
-        primordium_figure.gca().scatter(maxima_data['aligned_x'],maxima_data['aligned_y'],c=np.ones(len(maxima_data)),cmap='Greys',s=200,marker="^",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+        figure.gca().scatter(maxima_data['aligned_x'],maxima_data['aligned_y'],c=np.ones(len(maxima_data)),cmap='Greys',s=200,marker="^",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         # for l in maxima_data.index:
         #     if maxima_data['score'][l]>0.2:
         #         #primordium_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+"}$",color='r',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],"$_{"+str(np.round(maxima_data['score'][l],2))+" ("+str(np.round(maxima_data['extremality'][l],2))+")}$",color='chocolate',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(maxima_data['aligned_x'][l],maxima_data['aligned_y'][l],str(l),color='chocolate',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
         
-        primordium_figure.gca().scatter(saddle_data['aligned_x'],saddle_data['aligned_y'],c=np.ones(len(saddle_data)),cmap='Greys',s=200,marker="o",edgecolor='w',linewidth=1,vmin=0,vmax=2)
+        figure.gca().scatter(saddle_data['aligned_x'],saddle_data['aligned_y'],c=np.ones(len(saddle_data)),cmap='Greys',s=200,marker="o",edgecolor='w',linewidth=1,vmin=0,vmax=2)
         # for l in saddle_data.index:
         #     if saddle_data['score'][l]>0:
         #         #primordium_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+"}$",color='m',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],"$_{"+str(np.round(saddle_data['score'][l],2))+" ("+str(np.round(saddle_data['extremality'][l],2))+")}$",color='limegreen',size=10,verticalalignment='top',path_effects=[mpl.patheffects.withStroke(linewidth=2,foreground="w")])
         #         primordium_figure.gca().text(saddle_data['aligned_x'][l],saddle_data['aligned_y'][l],str(l),color='limegreen',size=11,path_effects=[mpl.patheffects.withStroke(linewidth=3,foreground="w")])
-        
+
+        figure.add_subplot(3,len(filenames),2*len(filenames)+i_file+1)
+
+        signal_name = "Normalized_qDII"
+        plot_signal_map(file_map, signal_name, figure, colormap=signal_colormaps[signal_name], signal_range=signal_ranges[signal_name], signal_lut_range=signal_lut_ranges[signal_name], distance_rings=False)
+
         for primordium in range(-3,6):
         #for primordium in [0,1,2]:
             primordium_minima_data = primordia_extrema_data[(primordia_extrema_data['primordium']==primordium)&(primordia_extrema_data['extremum_type']=='minimum')]
@@ -685,26 +662,8 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
             figure.gca().scatter(primordium_minima_data['aligned_x'],primordium_minima_data['aligned_y'],s=480,marker="v",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
             figure.gca().scatter(primordium_maxima_data['aligned_x'],primordium_maxima_data['aligned_y'],s=480,marker="^",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
             figure.gca().scatter(primordium_saddle_data['aligned_x'],primordium_saddle_data['aligned_y'],s=480,marker="o",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
-            
-            primordium_figure.gca().scatter(primordium_minima_data['aligned_x'],primordium_minima_data['aligned_y'],s=800,marker="v",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
-            primordium_figure.gca().scatter(primordium_maxima_data['aligned_x'],primordium_maxima_data['aligned_y'],s=800,marker="^",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
-            primordium_figure.gca().scatter(primordium_saddle_data['aligned_x'],primordium_saddle_data['aligned_y'],s=800,marker="o",facecolor=primordia_colors[primordium],edgecolor='w',linewidth=3)
 
-        c = patch.Circle(xy=[0,0],radius=clv3_radius,ec="#c94389",fc='None',lw=5,alpha=0.5)
-        primordium_figure.gca().add_artist(c)
 
-        primordium_figure.gca().set_xlim(-r_max - 10, r_max + 10)
-        primordium_figure.gca().set_ylim(-r_max - 10, r_max + 10)
-        primordium_figure.gca().axis('off')
-
-        figure.set_size_inches(18,18)
-        global_primordia_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_Normalized_qDII_map_global_primordia.png"])   
-        figure.savefig(global_primordia_filename)         
-
-        primordium_figure.set_size_inches(18,18)
-        primordium_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_Normalized_qDII_map_global_primordia_scores.png"]) 
-        primordium_figure.savefig(primordium_filename)
-        
         primordia_extrema_data['clv3_radius'] = [clv3_radius for i in range(len(primordia_extrema_data))]
         primordia_extrema_data['filename'] = [filename for i in range(len(primordia_extrema_data))]
         primordia_extrema_data['experiment'] = [data['experiment'].values[0] for i in range(len(primordia_extrema_data))]
@@ -712,14 +671,21 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, sam_or
         primordia_extrema_data['hour_time'] = [data['hour_time'].values[0] for i in range(len(primordia_extrema_data))]
         primordia_extrema_data['growth_condition'] = ['LD' if 'LD' in filename else 'SD' for i in range(len(primordia_extrema_data))]
         
-        for field in ['aligned_z','CLV3','Normalized_CLV3','DIIV','Normalized_DIIV']:
-            primordia_extrema_data[field] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([primordia_extrema_data['aligned_x'],primordia_extrema_data['aligned_y']]),data[field].values)
+        for field in ['aligned_z','CLV3','Normalized_CLV3','DIIV','Normalized_DIIV','qDII','Auxin']:
+            if field in data.columns:
+                primordia_extrema_data[field] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([primordia_extrema_data['aligned_x'],primordia_extrema_data['aligned_y']]),data[field].values)
 
-        primordia_extrema_data[['primordium','extremum_type','label']].to_csv(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_detected_extrema.csv")
+        primordia_extrema_data[['primordium','extremum_type','label']].to_csv(image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_detected_extrema.csv",index=False)
 
         primordia_data_filename = "".join([image_dirname+"/"+sequence_name+"/"+filename+"/"+filename,"_aligned_primordia_extrema.csv"]) 
-        primordia_extrema_data.to_csv(primordia_data_filename)
-        
+        primordia_extrema_data.to_csv(primordia_data_filename,index=False)
 
+    figure.set_size_inches(18*len(filenames),18*3)
+    figure.tight_layout()
 
+    global_primordia_filename = "".join([image_dirname+"/"+sequence_name+"/"+sequence_name,"_Normalized_qDII_primordia_detection.png"])
+    figure.savefig(global_primordia_filename)
+
+    figure.set_size_inches(10*len(filenames),10*3)
+    figure.tight_layout()
 

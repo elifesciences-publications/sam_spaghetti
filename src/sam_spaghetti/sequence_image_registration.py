@@ -19,7 +19,7 @@ from time import time as current_time
 max_time = 100
 
 
-def register_sequence_images(sequence_name, save_files=True, image_dirname=None, reference_name='TagBFP', microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
+def register_sequence_images(sequence_name, pyramid_lowest_level=1, save_files=True, image_dirname=None, reference_name='TagBFP', microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
     """
     """
 
@@ -32,7 +32,7 @@ def register_sequence_images(sequence_name, save_files=True, image_dirname=None,
     reference_images = load_sequence_signal_images(sequence_name,image_dirname,signal_names=[reference_name])[reference_name]
     filenames = np.sort(list(reference_images.keys()))
 
-    transformed_images, rigid_transformations, vectorfield_transformations = image_sequence_rigid_vectorfield_registration(reference_images,microscope_orientation=microscope_orientation,verbose=verbose,debug=debug,loglevel=loglevel)
+    transformed_images, rigid_transformations, vectorfield_transformations = image_sequence_rigid_vectorfield_registration(reference_images,microscope_orientation=microscope_orientation,pyramid_lowest_level=pyramid_lowest_level,verbose=verbose,debug=debug,loglevel=loglevel)
 
     if save_files:
 

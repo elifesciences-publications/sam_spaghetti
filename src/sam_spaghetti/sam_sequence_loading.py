@@ -65,16 +65,16 @@ def load_sequence_signal_images(sequence_name, image_dirname, signal_names=None,
                     else:
                         signal_image_file = raw_signal_image_file
                 if os.path.exists(signal_image_file):
-                    img = imread(signal_image_file)
+                    img = imread(signal_image_file,verbose=False)
                     if not signal_name in signal_images:
                         signal_images[signal_name] = {}
                     signal_images[signal_name][filename] = img
                 else:
                     signal_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+signal_name+".inr"
                     if os.path.exists(signal_image_file):
-                        signal_images[signal_name][filename] = imread(signal_image_file)
+                        signal_images[signal_name][filename] = imread(signal_image_file,verbose=False)
                     else:
-                        logging.warn("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
+                        logging.warning("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+signal_name)
                 logging.info("".join(["  " for l in range(loglevel)])+"  <-- Loading : "+filename+" "+signal_name+" ["+str(current_time() - start_time)+" s]")
 
     return signal_images
@@ -100,7 +100,7 @@ def load_sequence_segmented_images(sequence_name, image_dirname, membrane_name='
                 segmented_image_file = image_dirname+"/"+sequence_name+"/"+filename+"/"+filename+"_"+membrane_name+"_seg.inr.gz"
 
             if os.path.exists(segmented_image_file):
-                img = imread(segmented_image_file)
+                img = imread(segmented_image_file,verbose=False)
                 segmented_images[filename] = img
             else:
                 logging.warn("".join(["  " for l in range(loglevel)])+"  --> Unable to find : "+filename+" "+membrane_name+" segmented")

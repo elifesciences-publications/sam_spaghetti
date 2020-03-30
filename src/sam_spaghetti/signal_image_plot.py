@@ -200,8 +200,6 @@ def signal_image_primordium_plot(image_primordia_slices, figure=None, signal_nam
             rr, zz = map(np.transpose,np.meshgrid(img_r,img_z))
             extent = rr.min(), rr.max(), zz.max(), zz.min()
 
-            print(rr.shape,zz.shape,reference_img.shape)
-
             logging.info("".join(["  " for l in range(loglevel)]) + "--> Creating 2D Views : " + filename + " " + str(signal_names))
             for i_signal, signal_name in enumerate(signal_names):
                 if signal_name in ['PI','PIN1']:
@@ -293,8 +291,6 @@ def signal_image_all_primordia_plot(image_primordia_slices, figure=None, signal_
                     img_r = np.arange(r_max/resolution) * resolution
                     rr, zz = map(np.transpose,np.meshgrid(img_r,img_z))
                     extent = rr.min(), rr.max(), zz.max(), zz.min()
-
-                    print(rr.shape,zz.shape,reference_img.shape)
 
                     logging.info("".join(["  " for l in range(loglevel)]) + "--> Creating 2D Views : " + filename + " P" + str(primordium) + " " + str(signal_names))
                     for i_signal, signal_name in enumerate(signal_names):

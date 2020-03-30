@@ -100,6 +100,7 @@ def compile_signal_data(experiments, image_dirname, data_dirname=None, save_file
 
     return complete_data
 
+
 def compile_primordia_data(experiments, image_dirname, data_dirname=None, save_files=True, compute_surface_distance=False, verbose=False, debug=False, loglevel=0):
 
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
