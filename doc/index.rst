@@ -15,6 +15,7 @@ Scripts
     scripts/file_architecture
     scripts/detect_quantify_and_align
     scripts/segment_and_quantify_polarities
+    notebook/sam_sequence_detect_quantify_and_align
 
 Contents
 --------

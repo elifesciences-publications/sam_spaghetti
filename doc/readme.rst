@@ -29,7 +29,7 @@ Description
     :align: center
 
 
-This package provides scripts to reproduce the analysis pipelines described in the article `Temporal integration of auxin information for the regulation of patterning`_ and used to reconstruct population averages of Shoot Apical Meristems (SAM) of *Arabidopsis thaliana* with quantitative gene expression and hormonal signal 2D maps. It essentially gives access to two major quantitative image analysis and geometrical interpretation pipelines:
+This package provides scripts to reproduce the analysis pipelines described in the article **Temporal integration of auxin information for the regulation of patterning** and used to reconstruct population averages of Shoot Apical Meristems (SAM) of *Arabidopsis thaliana* with quantitative gene expression and hormonal signal 2D maps. It essentially gives access to two major quantitative image analysis and geometrical interpretation pipelines:
 
 
 +---------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+

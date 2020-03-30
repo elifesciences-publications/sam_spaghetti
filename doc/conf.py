@@ -16,6 +16,7 @@
 
 import sys
 import os
+import platform
 
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
@@ -56,6 +57,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'matplotlib.sphinxext.plot_directive',
+    'nbsphinx',
 ]
 
 # try to add more extensions which are not default
@@ -114,7 +116,7 @@ release = "0.9.0"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['build', 'dist']
+exclude_patterns = ['build', 'dist','**.ipynb_checkpoints']
 
 
 # The reST default role (used for this markup: `text`) to use for all
@@ -324,6 +326,25 @@ destdir = os.path.abspath(os.path.join(project_root, "doc", "_dvlpt"))
 
 if not os.path.isdir(destdir):
     os.makedirs(destdir)
+
+try:
+    import timagetk
+except:
+    print("timagetk not found! Doc examples won't be built!")
+else:
+    var_name = ""
+    if platform.system() == 'Linux':
+        var_name = "LD_LIBRARY_PATH"
+    elif platform.system() == 'Darwin':
+        var_name = "DYLD_LIBRARY_PATH"
+    if os.environ.get(var_name):
+        current_path = os.environ.get(var_name)
+    else:
+        current_path = ""
+    os.environ[var_name] = current_path + ":" + os.path.abspath(timagetk.__path__[0]+"/build-scons/lib")
+
+nbsphinx_allow_errors = True
+nbsphinx_timeout = -1
 
 main(['-e', '-o', destdir, '-d', '4', '-s', source_suffix[1:], '--force', src_dir])
 
