@@ -19,7 +19,7 @@ from time import time as current_time
 max_time = 100
 
 
-def register_sequence_images(sequence_name, pyramid_lowest_level=1, save_files=True, image_dirname=None, reference_name='TagBFP', microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
+def register_sequence_images(sequence_name, pyramid_lowest_level=1, compute_vectorfield=True, save_files=True, image_dirname=None, reference_name='TagBFP', microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
     """
     """
 
@@ -32,7 +32,7 @@ def register_sequence_images(sequence_name, pyramid_lowest_level=1, save_files=T
     reference_images = load_sequence_signal_images(sequence_name,image_dirname,signal_names=[reference_name])[reference_name]
     filenames = np.sort(list(reference_images.keys()))
 
-    transformed_images, rigid_transformations, vectorfield_transformations = image_sequence_rigid_vectorfield_registration(reference_images,microscope_orientation=microscope_orientation,pyramid_lowest_level=pyramid_lowest_level,verbose=verbose,debug=debug,loglevel=loglevel)
+    transformed_images, rigid_transformations, vectorfield_transformations = image_sequence_rigid_vectorfield_registration(reference_images,microscope_orientation=microscope_orientation,pyramid_lowest_level=pyramid_lowest_level,compute_vectorfield=compute_vectorfield,verbose=verbose,debug=debug,loglevel=loglevel)
 
     if save_files:
 
@@ -46,17 +46,18 @@ def register_sequence_images(sequence_name, pyramid_lowest_level=1, save_files=T
             floating_to_reference_transform_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_rigid_transform.csv"
             np.savetxt(floating_to_reference_transform_file, rigid_transformations[(floating_filename,reference_filename)], delimiter=";")
 
-            start_time = current_time()
-            logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving vectorfield transformations")
-            vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
-            # imsave(vector_field_file,SpatialImage(vectorfield_transformations[(floating_filename,reference_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
-            save_trsf(vectorfield_transformations[(floating_filename,reference_filename)],vector_field_file)
+            if compute_vectorfield:
+                start_time = current_time()
+                logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving vectorfield transformations")
+                vector_field_file = image_dirname+"/"+sequence_name+"/"+floating_filename+"/"+floating_filename+"_to_"+reference_filename[-3:]+"_vector_field.inr.gz"
+                # imsave(vector_field_file,SpatialImage(vectorfield_transformations[(floating_filename,reference_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
+                save_trsf(vectorfield_transformations[(floating_filename,reference_filename)],vector_field_file)
 
-            invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
-            # imsave(invert_vector_field_file,SpatialImage(vectorfield_transformations[(reference_filename,floating_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
-            save_trsf(vectorfield_transformations[(reference_filename,floating_filename)], invert_vector_field_file)
+                invert_vector_field_file = image_dirname+"/"+sequence_name+"/"+reference_filename+"/"+reference_filename+"_to_"+floating_filename[-3:]+"_vector_field.inr.gz"
+                # imsave(invert_vector_field_file,SpatialImage(vectorfield_transformations[(reference_filename,floating_filename)],voxelsize=transformed_images[floating_filename].voxelsize))
+                save_trsf(vectorfield_transformations[(reference_filename,floating_filename)], invert_vector_field_file)
 
-            logging.info("".join(["  " for l in range(loglevel)])+"  <-- Saving vectorfield transformations ["+str(current_time()-start_time)+" s]")
+                logging.info("".join(["  " for l in range(loglevel)])+"  <-- Saving vectorfield transformations ["+str(current_time()-start_time)+" s]")
 
     result = (transformed_images, rigid_transformations, vectorfield_transformations)
     return result

@@ -1,3 +1,2 @@
 experiment;experiment_name;microscopy_directory;channel_names;reference_name
-SAM-TEST;qDII-CLV3-PIN1-LD-TEST;SAM-TEST;['DIIV','PIN1','PI','TagBFP','CLV3'];TagBFP
-E35;qDII-PIN1-CLV3-PI-LD_E35_171110;20171110 MS-E35 LD qDII-CLV3-PIN1-PI;['DIIV','PIN1','PI','TagBFP','CLV3'];TagBFP
+SAM-TEST;qDII-CLV3-PIN1-LD-TEST_171110;SAM-TEST;['DIIV','PIN1','PI','TagBFP','CLV3'];TagBFP

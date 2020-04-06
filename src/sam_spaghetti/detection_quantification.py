@@ -53,10 +53,10 @@ def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, co
     df = topomesh_to_dataframe(topomesh,0)
     if save_files:
         logging.info("".join(["  " for l in range(loglevel)])+"  --> Saving nuclei data")
-        if ('DIIV' in df.columns)&('TagBFP' in df.columns):
-            df['qDII'] = df['DIIV'].values/df['TagBFP'].values
-        if ('RGAV' in df.columns)&('TagBFP' in df.columns):
-            df['qRGA'] = df['RGAV'].values/df['TagBFP'].values
+        if ('DIIV' in df.columns)&(reference_name in df.columns):
+            df['qDII'] = df['DIIV'].values/df[reference_name].values
+        if ('RGAV' in df.columns)&(reference_name in df.columns):
+            df['qRGA'] = df['RGAV'].values/df[reference_name].values
 
         df['label'] = df.index.values
         df.to_csv(image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/"+nomenclature_name+"_signal_data.csv",index=False)  

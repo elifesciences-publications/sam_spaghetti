@@ -367,6 +367,9 @@ def align_sam_sequence(sequence_name, image_dirname, save_files=True, sam_orient
     c = patch.Circle(xy=[0, 0], radius=clv3_radius, ec="#c94389", fc='None', lw=5, alpha=1)
     figure.gca().add_artist(c)
 
+    c = patch.Circle(xy=[0, 0], radius=4, fc="#c94389",ec='w',lw=3,alpha=1)
+    figure.gca().add_artist(c)
+
     figure.gca().set_xlim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
     figure.gca().set_ylim(microscope_orientation*(-r_max - 10), microscope_orientation*(r_max + 10))
     figure.gca().axis('off')
@@ -671,7 +674,7 @@ def detect_organ_primordia(sequence_name, image_dirname, save_files=True, r_max=
         primordia_extrema_data['hour_time'] = [data['hour_time'].values[0] for i in range(len(primordia_extrema_data))]
         primordia_extrema_data['growth_condition'] = ['LD' if 'LD' in filename else 'SD' for i in range(len(primordia_extrema_data))]
         
-        for field in ['aligned_z','CLV3','Normalized_CLV3','DIIV','Normalized_DIIV','qDII','Auxin']:
+        for field in ['aligned_z','CLV3','Normalized_CLV3','DIIV','Normalized_DIIV','qDII','Auxin','DR5','PIN1']:
             if field in data.columns:
                 primordia_extrema_data[field] = compute_local_2d_signal(np.transpose([X,Y]),np.transpose([primordia_extrema_data['aligned_x'],primordia_extrema_data['aligned_y']]),data[field].values)
 

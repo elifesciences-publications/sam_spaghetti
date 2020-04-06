@@ -453,7 +453,6 @@ def signal_nuclei_plot(signal_data, figure=None, signal_names=None, filenames=No
             for i_signal, signal_name in enumerate(signal_names):
                 figure.add_subplot(len(signal_names), len(filenames), i_signal * len(filenames) + i_time + 1)
 
-
                 if aligned:
                     figure.gca().set_xlim(-r_max, r_max)
                     figure.gca().set_ylim(-r_max, r_max)
@@ -690,6 +689,9 @@ def signal_map_plot(signal_maps, figure=None, signal_names=None, filenames=None,
                 if not aligned:
                     figure.gca().set_xlim(0, microscope_orientation*2 * r_max)
                     figure.gca().set_ylim(0, microscope_orientation*2 * r_max)
+                elif aligned:
+                    figure.gca().set_xlim(-r_max, r_max)
+                    figure.gca().set_ylim(-r_max, r_max)
 
     return figure
 
