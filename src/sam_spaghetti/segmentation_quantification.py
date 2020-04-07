@@ -15,7 +15,7 @@ from timagetk.plugins import region_labeling
 from timagetk.plugins import linear_filtering
 from timagetk.plugins import segmentation
 from timagetk.plugins import labels_post_processing
-from timagetk.algorithms.resample import isometric_resampling, resample
+from timagetk.plugins.resampling import isometric_resampling
 from timagetk.algorithms.exposure import z_slice_contrast_stretch, z_slice_equalize_adapthist
 
 from tissue_analysis.property_spatial_image import PropertySpatialImage, property_spatial_image_to_dataframe

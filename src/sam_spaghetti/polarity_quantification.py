@@ -18,7 +18,7 @@ from sam_spaghetti.sam_sequence_loading import load_sequence_signal_images, load
 from timagetk.io import imread, imsave
 from timagetk.components import SpatialImage
 from timagetk.algorithms import watershed
-from timagetk.algorithms import resample_isotropic
+from timagetk.plugins.resampling import isometric_resampling
 
 from tissue_nukem_3d.microscopy_images.read_microscopy_image import read_czi_image
 from tissue_nukem_3d.epidermal_maps import compute_local_2d_signal
