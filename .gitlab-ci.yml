@@ -48,12 +48,11 @@ anaconda:
 pages:
   stage: deploy
   script:
-  - apt install wget -y
   - conda update --all
   - conda env create -f conda/env.yaml
   - source activate sam_spaghetti
   - python setup.py develop
-  - conda install -c conda-forge sphinx make nbsphinx
+  - conda install -c conda-forge sphinx make wget nbsphinx
   - ./download_sam_data.sh
   - cd doc
   - make html
