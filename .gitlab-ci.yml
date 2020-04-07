@@ -48,6 +48,7 @@ anaconda:
 pages:
   stage: deploy
   script:
+  - apt install wget -y
   - conda update --all
   - conda env create -f conda/env.yaml
   - source activate sam_spaghetti
