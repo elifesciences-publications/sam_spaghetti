@@ -53,7 +53,7 @@ pages:
   - source activate sam_spaghetti
   - python setup.py develop
   - conda install -c conda-forge sphinx make jupyter_client nbsphinx
-  - ./dowload_sam_data.sh
+  - ./download_sam_data.sh
   - cd doc
   - make html
   - mv build/html ../public
