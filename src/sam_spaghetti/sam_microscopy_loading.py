@@ -4,6 +4,7 @@ from time import time as current_time
 
 from timagetk.io import imread, imsave
 from timagetk.components import SpatialImage
+from timagetk.plugins.resampling import isometric_resampling
 
 from tissue_nukem_3d.microscopy_images.read_microscopy_image import read_czi_image, read_lsm_image, read_tiff_image
 
@@ -11,7 +12,7 @@ import logging
 import os
 
 
-def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature_name=None, image_dirname=None, channel_names=None, save_images=True, reference_name='TagBFP', verbose=True, debug=False, loglevel=0):
+def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature_name=None, image_dirname=None, channel_names=None, save_images=True, reference_name='TagBFP', resampling_voxelsize=None, verbose=True, debug=False, loglevel=0):
     """
     """
 
@@ -51,6 +52,10 @@ def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature
         img_dict = {channel_names[0]: img_dict}
     logging.info("".join(["  " for l in range(loglevel)]) + "<-- Loading microscopy image [" + str(current_time() - start_time) + " s]")
 
+    if resampling_voxelsize is not None:
+        for channel in img_dict.keys():
+            img_dict[channel] = isometric_resampling(img_dict[channel],method=resampling_voxelsize)
+
     if nomenclature_name is None:
         nomenclature_name = filename
     sequence_name = nomenclature_name[:-4]
@@ -66,6 +71,8 @@ def load_image_from_microscopy(microscopy_file, no_organ_file=None, nomenclature
         voxelsize = reference_img.voxelsize
         for channel in channel_names:
             no_organ_dict[channel] = SpatialImage(no_organ_dict[channel], voxelsize=voxelsize)
+            if resampling_voxelsize is not None:
+                no_organ_dict[channel] = isometric_resampling(no_organ_dict[channel],method=resampling_voxelsize)
     else:
         no_organ_dict = {}
 

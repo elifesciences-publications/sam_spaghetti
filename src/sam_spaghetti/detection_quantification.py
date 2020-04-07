@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 # channel_compute_ratios = ['DIIV']
 channel_compute_ratios = []
 
-def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, compute_ratios=None, save_files=True, image_dirname=None, nomenclature_name=None, microscope_orientation=-1, verbose=True, debug=False, loglevel=0):
+def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, compute_ratios=None, save_files=True, image_dirname=None, nomenclature_name=None, microscope_orientation=-1, surface_voxelsize=1., verbose=True, debug=False, loglevel=0):
     """
     """
     logging.getLogger().setLevel(logging.INFO if verbose else logging.DEBUG if debug else logging.ERROR)
@@ -39,7 +39,7 @@ def detect_and_quantify(img_dict, reference_name='TagBFP', signal_names=None, co
 
     logging.info("".join(["  " for l in range(loglevel)])+"--> Detecting and quantifying")
     # topomesh = nuclei_image_topomesh(nomenclature_names[filename],dirname=image_dirname,reference_name=reference_name,signal_names=signal_names,compute_ratios=compute_ratios,redetect=redetect, recompute=recompute,subsampling=4)
-    topomesh, surface_topomesh = nuclei_image_topomesh(img_dict,reference_name=reference_name,signal_names=signal_names,compute_ratios=compute_ratios, microscope_orientation=microscope_orientation, radius_range=(0.8,1.4), threshold=3000, nuclei_sigma=0.75, surface_mode='image', return_surface=True)
+    topomesh, surface_topomesh = nuclei_image_topomesh(img_dict,reference_name=reference_name,signal_names=signal_names,compute_ratios=compute_ratios, microscope_orientation=microscope_orientation, radius_range=(0.8,1.4), threshold=3000, nuclei_sigma=0.75, surface_mode='image', surface_voxelsize=surface_voxelsize, return_surface=True)
 
     if save_files:
         topomesh_file = image_dirname+"/"+sequence_name+"/"+nomenclature_name+"/"+nomenclature_name+"_nuclei_signal_curvature_topomesh.ply"
