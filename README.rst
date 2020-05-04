@@ -23,4 +23,4 @@ SAM Spaghetti
 
 See the `documentation website <https://mosaic.gitlabpages.inria.fr/publications/sam_spaghetti/>`_ for installation guidelines, examples and tutorials.
 
-### This code is associated with the paper from Galvan-Ampudia et al., "Temporal integration of auxin information for the regulation of patterning". eLife, 2020. http://dx.doi.org/10.7554/eLife.55832
+This code is associated with the paper from Galvan-Ampudia et al., "Temporal integration of auxin information for the regulation of patterning". eLife, 2020. http://dx.doi.org/10.7554/eLife.55832
